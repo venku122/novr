@@ -1,0 +1,3 @@
+# Progress
+
+2026-10-03: goal registered; branch created from installed upstream dev revision. Architecture/research/config/log inventory and baseline runtime build completed. Read-only bounded raw input/current profile/binding evidence added. Safe Windows staging, guarded deploy/rollback, launch and evidence collection implemented. Policy, real MSBuild target, disposable game-tree and mocked launch safety checks pass. Independent review fixes covered junction paths, metadata writes, launch race and receipt recovery. Hardware acceptance remains untested. See acceptance-matrix.md and baseline test guide.

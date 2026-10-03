@@ -1,0 +1,375 @@
+{
+  "schema_version": "1.0",
+  "project": {
+    "id": "novr-steam-frame-development",
+    "name": "NOVR Steam Frame Development",
+    "objective": "Steam Frame controller UI, HOTAS coexistence, evidence capture, safe staging/deploy/rollback and Codex assisted VR iteration with actual hardware acceptance",
+    "status": "active",
+    "created_at": "2026-10-03T18:10:32-05:00",
+    "updated_at": "2026-10-03T23:39:29.486093+00:00"
+  },
+  "control": {
+    "mode": "single-executor",
+    "source_of_truth": ".agent/long-horizon/STATE.json",
+    "approval_policy": "User authorizes local inspection, edits, tests, builds and staged artifacts. Never deploy while game runs; no push/merge or secrets. Stop for physical headset acceptance."
+  },
+  "baseline": {
+    "status": "unknown",
+    "evidence_ids": [
+      "E-inventory",
+      "E-baseline-build"
+    ],
+    "notes": [
+      "Host/source baseline inventoried; actual failing Steam Frame NOVR session not yet captured."
+    ]
+  },
+  "budgets": {
+    "limits": {
+      "wall_clock_minutes": null,
+      "tokens": null,
+      "compute_usd": null
+    },
+    "used": {
+      "wall_clock_minutes": 0,
+      "tokens": 0,
+      "compute_usd": 0
+    },
+    "reserve_fraction": 0.2
+  },
+  "tasks": [
+    {
+      "id": "M0",
+      "title": "Baseline architecture, provenance and actual failing-session input evidence",
+      "required": true,
+      "state": "verifying",
+      "priority": 1,
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Baseline architecture, provenance and actual failing-session input evidence",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 1,
+      "max_attempts": 3,
+      "verification": {
+        "status": "inconclusive",
+        "auditor": "deterministic checks and read-only /root/baseline_review; hardware pending",
+        "evidence_ids": [
+          "E-inventory",
+          "E-final-build",
+          "E-policy-tests",
+          "E-review"
+        ]
+      },
+      "checkpoint": "404f65fb777414633729fd88179768594d871d91",
+      "notes": [
+        "Read-only diagnostic package prepared. Actual profiles/raw controller data needed before M1/M2 behavior changes."
+      ]
+    },
+    {
+      "id": "M1",
+      "title": "Raw left/right input and profile selection verified on Frame",
+      "required": true,
+      "state": "queued",
+      "priority": 2,
+      "depends_on": [
+        "M0"
+      ],
+      "acceptance_criteria": [
+        "Raw left/right input and profile selection verified on Frame",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": null,
+      "notes": []
+    },
+    {
+      "id": "M2",
+      "title": "Functional tracked UI pointer in game and NOVR menus",
+      "required": true,
+      "state": "queued",
+      "priority": 3,
+      "depends_on": [
+        "M1"
+      ],
+      "acceptance_criteria": [
+        "Functional tracked UI pointer in game and NOVR menus",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": null,
+      "notes": []
+    },
+    {
+      "id": "M3",
+      "title": "HOTAS, mouse and keyboard coexistence verified",
+      "required": true,
+      "state": "queued",
+      "priority": 4,
+      "depends_on": [
+        "M2"
+      ],
+      "acceptance_criteria": [
+        "HOTAS, mouse and keyboard coexistence verified",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": null,
+      "notes": []
+    },
+    {
+      "id": "M4",
+      "title": "Safe staging, stopped-game deployment, rollback and launch",
+      "required": true,
+      "state": "verifying",
+      "priority": 5,
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Safe staging, stopped-game deployment, rollback and launch",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 1,
+      "max_attempts": 3,
+      "verification": {
+        "status": "inconclusive",
+        "auditor": "deterministic tests and read-only /root/baseline_review; live deployment/launch pending",
+        "evidence_ids": [
+          "E-final-build",
+          "E-msbuild-tests",
+          "E-deployment-tests",
+          "E-launch-tests",
+          "E-review"
+        ]
+      },
+      "checkpoint": "404f65fb777414633729fd88179768594d871d91",
+      "notes": [
+        "Safe staging and disposable-tree safety verified. Live deploy/rollback/SteamVR launch not exercised."
+      ]
+    },
+    {
+      "id": "M5",
+      "title": "Push-to-talk voice observation with transcript and evidence session",
+      "required": true,
+      "state": "queued",
+      "priority": 6,
+      "depends_on": [
+        "M4"
+      ],
+      "acceptance_criteria": [
+        "Push-to-talk voice observation with transcript and evidence session",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": null,
+      "notes": []
+    },
+    {
+      "id": "M6",
+      "title": "Camera/origin, controller, canvas and rendering snapshot telemetry",
+      "required": true,
+      "state": "queued",
+      "priority": 7,
+      "depends_on": [
+        "M5"
+      ],
+      "acceptance_criteria": [
+        "Camera/origin, controller, canvas and rendering snapshot telemetry",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": null,
+      "notes": []
+    },
+    {
+      "id": "M7",
+      "title": "Codex evidence consumption with explicit command mutation boundaries",
+      "required": true,
+      "state": "queued",
+      "priority": 8,
+      "depends_on": [
+        "M6"
+      ],
+      "acceptance_criteria": [
+        "Codex evidence consumption with explicit command mutation boundaries",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": null,
+      "notes": []
+    },
+    {
+      "id": "M8",
+      "title": "Complete in-headset capture/diagnose/build/deploy/retest demonstration",
+      "required": true,
+      "state": "queued",
+      "priority": 9,
+      "depends_on": [
+        "M7"
+      ],
+      "acceptance_criteria": [
+        "Complete in-headset capture/diagnose/build/deploy/retest demonstration",
+        "Hardware criteria require actual Steam Frame evidence where applicable"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": null,
+      "notes": []
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E-inventory",
+      "type": "artifact",
+      "path": "evidence/installed-baseline.json",
+      "summary": "Installed NOVR dev commit/config and SHA256 baseline; files remained unchanged",
+      "created_at": "2026-10-03T23:39:29.486093+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-baseline-build",
+      "type": "command",
+      "path": "evidence/baseline-build.txt",
+      "summary": "Unmodified runtime compiled: zero errors, 413 warnings",
+      "created_at": "2026-10-03T23:39:29.486093+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-final-build",
+      "type": "command",
+      "path": "evidence/windows-build-dev-final.txt",
+      "summary": "Real Windows runtime, patcher and bridge compiled and staged; no live writes; warnings retained",
+      "created_at": "2026-10-03T23:39:29.486093+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-policy-tests",
+      "type": "test-report",
+      "path": "evidence/diagnostics-tests.txt",
+      "summary": "Diagnostic mode/window/sample budget tests pass",
+      "created_at": "2026-10-03T23:39:29.486093+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-msbuild-tests",
+      "type": "test-report",
+      "path": "evidence/build-safety-tests.txt",
+      "summary": "Actual MSBuild stage/deploy flags and relocated obj exclusions pass",
+      "created_at": "2026-10-03T23:39:29.486093+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-deployment-tests",
+      "type": "test-report",
+      "path": "evidence/deployment-tests.txt",
+      "summary": "Disposable-tree process/integrity/path/junction/deploy/rollback/recovery tests pass",
+      "created_at": "2026-10-03T23:39:29.486093+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-launch-tests",
+      "type": "test-report",
+      "path": "evidence/launch-safety-tests.txt",
+      "summary": "Mocked process boundary confirms asynchronous launch locking; no game launched",
+      "created_at": "2026-10-03T23:39:29.486093+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-review",
+      "type": "review",
+      "path": "evidence/independent-review.txt",
+      "summary": "Independent reviewer confirmed five safety findings repaired; hardware remains unverified",
+      "created_at": "2026-10-03T23:39:29.486093+00:00",
+      "immutable": false
+    }
+  ],
+  "decisions": [],
+  "blockers": [
+    {
+      "kind": "physical-hardware-evidence",
+      "task_id": "M0",
+      "summary": "Tester must perform documented failing-session input baseline; no raw NOVR controller snapshots exist yet."
+    }
+  ],
+  "next_action": {
+    "task_id": "M0",
+    "reason": "Run docs/development/steam-frame-baseline.md on Steam Frame; return session path and ray/hover/click/HOTAS observations. Interpret raw profile/action resolution before changing behavior."
+  },
+  "termination": {
+    "condition": null,
+    "summary": "Physical headset baseline is required before dependent controller/UI implementation. Goal remains active; no acceptance claim."
+  },
+  "artifacts": {
+    "stage_directory": "staging/20261003T233707935Z-4d0b4c04",
+    "build_id": "e5d61593b6074aa68ff4c8e50d202120",
+    "code_commit": "404f65fb777414633729fd88179768594d871d91",
+    "hardware_status": "not-tested",
+    "live_deployment": "not-performed"
+  }
+}

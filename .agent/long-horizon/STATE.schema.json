@@ -1,0 +1,362 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/long-horizon-agent-state.schema.json",
+  "title": "Long-Horizon Agent Project State",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "project",
+    "control",
+    "baseline",
+    "budgets",
+    "tasks",
+    "evidence",
+    "decisions",
+    "blockers",
+    "next_action",
+    "termination"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "objective",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused",
+            "blocked",
+            "complete",
+            "aborted"
+          ]
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "control": {
+      "type": "object",
+      "required": [
+        "mode",
+        "source_of_truth",
+        "approval_policy"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "single-executor",
+            "executor-auditor",
+            "manager-executor-auditor",
+            "parallel-campaign"
+          ]
+        },
+        "source_of_truth": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approval_policy": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "baseline": {
+      "type": "object",
+      "required": [
+        "status",
+        "evidence_ids"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "unknown",
+            "failing",
+            "verified"
+          ]
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "budgets": {
+      "type": "object",
+      "required": [
+        "limits",
+        "used",
+        "reserve_fraction"
+      ],
+      "properties": {
+        "limits": {
+          "type": "object"
+        },
+        "used": {
+          "type": "object"
+        },
+        "reserve_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "required",
+          "state",
+          "priority",
+          "depends_on",
+          "acceptance_criteria",
+          "validation",
+          "attempt_count",
+          "max_attempts",
+          "verification",
+          "checkpoint"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^T-[A-Za-z0-9._-]+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "ready",
+              "executing",
+              "verifying",
+              "verified",
+              "failed",
+              "blocked",
+              "cancelled",
+              "superseded"
+            ]
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "acceptance_criteria": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "validation": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "attempt_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_attempts": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "verification": {
+            "type": "object",
+            "required": [
+              "status",
+              "auditor",
+              "evidence_ids"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "not_run",
+                  "passed",
+                  "failed",
+                  "inconclusive"
+                ]
+              },
+              "auditor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "evidence_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": true
+          },
+          "checkpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "path",
+          "summary",
+          "created_at",
+          "immutable"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^E-[A-Za-z0-9._-]+$"
+          },
+          "type": {
+            "enum": [
+              "command",
+              "test-report",
+              "benchmark",
+              "screenshot",
+              "recording",
+              "artifact",
+              "log",
+              "manual-observation",
+              "review"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "immutable": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "decisions": {
+      "type": "array"
+    },
+    "blockers": {
+      "type": "array"
+    },
+    "next_action": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "reason"
+      ],
+      "additionalProperties": true
+    },
+    "termination": {
+      "type": "object",
+      "required": [
+        "condition",
+        "summary"
+      ],
+      "properties": {
+        "condition": {
+          "enum": [
+            null,
+            "successful_completion",
+            "genuine_blocker",
+            "budget_exhaustion",
+            "safety_boundary",
+            "infrastructure_failure"
+          ]
+        },
+        "summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
