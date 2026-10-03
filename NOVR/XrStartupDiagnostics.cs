@@ -23,9 +23,11 @@ internal static class XrStartupDiagnostics
     private static readonly List<XRInputSubsystem> InputSubsystems = new();
     private static XRManagerSettings? _lastManager;
     private static XRLoader? _lastLoader;
+    internal static string ActiveLoaderName => _lastManager?.activeLoader?.GetType().FullName ?? "unavailable";
 
     private static readonly string[] InterestingExtensions =
     {
+        "XR_VALVE_frame_controller_interaction",
         "XR_KHR_binding_modification",
         "XR_EXT_dpad_binding",
         "XR_EXT_hand_tracking",
@@ -43,6 +45,9 @@ internal static class XrStartupDiagnostics
 
     public static void LogBeforeInitialize(XRManagerSettings manager, XRLoader loader)
     {
+        // Keep loader identity available to opt-in structured snapshots even when text diagnostics are off.
+        _lastManager = manager;
+        _lastLoader = loader;
         LogSnapshot("before InitializeLoaderSync", manager, loader, includeOpenXrSettings: false, includeOpenXrRuntime: false, includeDevices: false);
     }
 

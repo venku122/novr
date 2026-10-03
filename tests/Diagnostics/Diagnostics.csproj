@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <SkipNuclearOptionReferences>true</SkipNuclearOptionReferences>
+    <GameDeployPath></GameDeployPath>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../NOVR/Diagnostics/DiagnosticCapturePolicy.cs" Link="DiagnosticCapturePolicy.cs" />
+  </ItemGroup>
+</Project>

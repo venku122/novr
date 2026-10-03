@@ -25,6 +25,8 @@ public class ModConfiguration
     public readonly ConfigEntry<bool> EnableExperimentalSteamVrControllerProfiles;
     public readonly ConfigEntry<bool> LogXrStartupDiagnostics;
     public readonly ConfigEntry<bool> VerboseDiagnostics;
+    public readonly ConfigEntry<string> RawInputDiagnosticMode;
+    public readonly ConfigEntry<KeyCode> RawInputSnapshotShortcut;
     public readonly ConfigEntry<float> CockpitHeadForwardOffset;
     public readonly ConfigEntry<float> CockpitHeadRightOffset;
     public readonly ConfigEntry<KeyCode> RecenterShortcut;
@@ -114,6 +116,13 @@ public class ModConfiguration
             "Log XR Startup Diagnostics",
             false,
             "Log read-only XR loader, OpenXR runtime, subsystem, and input device state during VR startup.");
+
+        RawInputDiagnosticMode = config.Bind(
+            "Diagnostics", "Raw Input Mode", "Off",
+            "Read-only controller evidence: Off (default), Snapshot (startup/device/profile changes and shortcut), or Session (also samples at up to 10 Hz for 60 seconds, max 600 samples). Restart to change active modes. Max 720 files per game process.");
+        RawInputSnapshotShortcut = config.Bind(
+            "Diagnostics", "Raw Input Snapshot Shortcut", KeyCode.F10,
+            "Capture a read-only XR/InputSystem snapshot when raw input diagnostics are enabled. Can be mapped from an unused HOTAS button externally.");
 
         VerboseDiagnostics = config.Bind(
             "Diagnostics",

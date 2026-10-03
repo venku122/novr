@@ -22,6 +22,27 @@ namespace NOVR.VrUi
         private static InputAction? _headRot;
         private static bool _actionsInitialized;
 
+        // Read only: do not initialize actions or alter their bindings for diagnostics.
+        internal static string[] GetDiagnosticBindings()
+        {
+            var result = new List<string>();
+            var actions = new (string Name, InputAction? Action)[]
+            {
+                ("rightAimPosition", _rightAimPos), ("rightAimRotation", _rightAimRot),
+                ("leftAimPosition", _leftAimPos), ("leftAimRotation", _leftAimRot),
+                ("rightTrigger", _rightTrigger), ("leftTrigger", _leftTrigger),
+                ("headPosition", _headPos), ("headRotation", _headRot)
+            };
+            foreach (var item in actions)
+            {
+                result.Add(item.Name + ": " + (item.Action == null ? "not-initialized" : $"enabled={item.Action.enabled}; resolvedControls={item.Action.controls.Count}"));
+                if (item.Action == null) continue;
+                foreach (var binding in item.Action.bindings) result.Add(item.Name + " binding=" + binding.effectivePath);
+                foreach (var control in item.Action.controls) result.Add(item.Name + " resolved=" + control.path);
+            }
+            return result.ToArray();
+        }
+
         // Frame cache — all raw tracking data read once per frame
         private static int _cachedFrame = -1;
         private static bool _rightValid, _leftValid, _headValid;
