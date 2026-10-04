@@ -26,17 +26,33 @@ internal sealed class HudPanelPlacement
             _pivot = _rect.pivot; _size = _rect.sizeDelta; _anchoredPosition = _rect.anchoredPosition3D;
         }
     }
-    public void SetHelmet(bool helmet, Transform? helmetParent)
+    public void SetHelmet(bool helmet, Transform? helmetParent, Vector3? helmetOffset = null, float helmetWorldScale = 1)
     {
         helmet &= helmetParent != null;
-        if (Panel == null || helmet == _helmet) return;
+        if (Panel == null || (helmet == _helmet && (!helmet || !helmetOffset.HasValue))) return;
         if (helmet)
         {
-            Panel.SetParent(helmetParent, false);
-            Panel.localPosition = _position; Panel.localRotation = _rotation; Panel.localScale = _scale;
+            var scale = helmetParent!.lossyScale;
+            if (helmetOffset.HasValue && (!ValidScale(scale.x) || !ValidScale(scale.y) || !ValidScale(scale.z))) { Restore(); return; }
+            if (!_helmet) Panel.SetParent(helmetParent, false);
+            if (helmetOffset.HasValue)
+            {
+                // UI offsets are world units at the fixed 1000-unit visor plane,
+                // independent of the aircraft HUD's inherited canvas scale.
+                Panel.SetPositionAndRotation(helmetParent.position + helmetParent.rotation * helmetOffset.Value, helmetParent.rotation * _rotation);
+                Panel.localScale = new Vector3(helmetWorldScale / scale.x, helmetWorldScale / scale.y, helmetWorldScale / scale.z);
+            }
+            else { Panel.localPosition = _position; Panel.localRotation = _rotation; Panel.localScale = _scale; }
             _helmet = true;
         }
         else Restore();
+    }
+    private static bool ValidScale(float value) => !float.IsNaN(value) && !float.IsInfinity(value) && System.Math.Abs(value) > .00001f;
+    public void SetHelmetLocal(bool helmet, Vector3 position)
+    {
+        if (Panel == null) return;
+        if (!helmet) { Restore(); return; }
+        Panel.localPosition = position; _helmet = true;
     }
     public void Restore()
     {

@@ -51,9 +51,22 @@ public class NOVRHMDBehavior : UIRenderedCanvasBehavior
         }
         if (reference == null) return;
         transform.SetPositionAndRotation(reference.position + reference.forward * Offset, reference.rotation);
-        if (_speed != null) _speed.localPosition = new Vector3(-110f, 150f, 0);
-        if (_altitude != null) _altitude.localPosition = new Vector3(110f, 150f, 0);
-        if (_bearing != null) _bearing.localPosition = new Vector3(0, 200f, 0);
+        if (ModConfiguration.Instance.HudStatusMode.Value == HudStatusMode.Aircraft)
+        {
+            if (_speed != null) _speed.localPosition = new Vector3(-110f, 150f, 0);
+            if (_altitude != null) _altitude.localPosition = new Vector3(110f, 150f, 0);
+            if (_bearing != null) _bearing.localPosition = new Vector3(0, 200f, 0);
+        }
+        else
+        {
+            PlaceNumber(_speed, reference, new Vector3(-150f, -45f, Offset));
+            PlaceNumber(_altitude, reference, new Vector3(150f, -45f, Offset));
+            PlaceNumber(_bearing, reference, new Vector3(0, -95f, Offset));
+        }
         if (_horizon != null) _horizon.localPosition = new Vector3(0, 150f, 0);
+    }
+    private static void PlaceNumber(Transform? number, Transform reference, Vector3 offset)
+    {
+        if (number != null) number.position = reference.position + reference.rotation * offset;
     }
 }

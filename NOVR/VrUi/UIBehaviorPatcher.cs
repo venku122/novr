@@ -19,7 +19,8 @@ public class UIBehaviorPatcher : NOVRBehaviour
     {
         { typeof(FlightHud), typeof(NOVRFlightHudBehavior) },
         { typeof(GameplayUI), typeof(NOVRGameplayUIBehaviour) },
-        { typeof(MessageUI), typeof(NOVRGameplayUIBehaviour) },
+        { typeof(MessageUI), typeof(NOVRNotificationBehavior) },
+        { typeof(KillDisplay), typeof(NOVRNotificationBehavior) },
         { typeof(StatusDisplay), typeof(NOVRStatusDisplayBehavior) },
         { typeof(DynamicMap), typeof(NOVRDynamicMapBehavior) },
         { typeof(ControlMapper), typeof(NOVRGameplayUIBehaviour) },

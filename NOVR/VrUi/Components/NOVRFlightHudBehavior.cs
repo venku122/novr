@@ -9,6 +9,7 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
     public static NOVRFlightHudBehavior? Instance { get; private set; }
     private readonly HudStatusPolicy _statusPolicy = new();
     private HudPanelPlacement[] _statusPanels = System.Array.Empty<HudPanelPlacement>();
+    private readonly System.Collections.Generic.List<(HudPanelPlacement placement, Vector3 position)> _statusChildren = new(3);
     private Transform? _helmetCenter;
     internal bool HelmetCenterAvailable => _helmetCenter != null && _helmetCenter.gameObject.activeInHierarchy;
     public bool StatusFollowsHelmet { get; private set; }
@@ -19,8 +20,9 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
     {
         var source = Instance;
         if (source == null) return System.Array.Empty<HudPanelSnapshot>();
-        var result = new HudPanelSnapshot[source._statusPanels.Length];
-        for (var i = 0; i < result.Length; i++) result[i] = source._statusPanels[i].Snapshot();
+        var result = new HudPanelSnapshot[source._statusPanels.Length + source._statusChildren.Count];
+        for (var i = 0; i < source._statusPanels.Length; i++) result[i] = source._statusPanels[i].Snapshot();
+        for (var i = 0; i < source._statusChildren.Count; i++) result[source._statusPanels.Length + i] = source._statusChildren[i].placement.Snapshot();
         return result;
     }
     public override void Awake()
@@ -47,6 +49,12 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
         var topRight = FindChildStartingWith(transform, "TopRightPanel");
         var lowerLeft = FindChildStartingWith(transform, "LowerLeftPanel");
         if (topRight != null) panels.Add(new HudPanelPlacement(topRight));
+        if (topRight != null)
+        {
+            CacheHelmetChild(topRight, "countermeasuresBackground", new Vector3(-370, -55, 0));
+            CacheHelmetChild(topRight, "PowerPanel", new Vector3(-220, -80, 0));
+            CacheHelmetChild(topRight, "weaponPanel", new Vector3(-100, -55, 0));
+        }
         if (lowerLeft != null) panels.Add(new HudPanelPlacement(lowerLeft));
         _statusPanels = panels.ToArray();
         var targetDesignator = FindChildStartingWith(transform, "targetDesignator");
@@ -96,7 +104,13 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
         StatusFollowsHelmet = _statusPolicy.UseHelmet(ModConfiguration.Instance.HudStatusMode.Value,
             StatusBoresightAngle, ModConfiguration.Instance.HudSmartAngle.Value, referenceValid,
             ModConfiguration.Instance.HudCockpitDeclutter.Value, StatusLookingDownAngle, ModConfiguration.Instance.HudDeclutterDownAngle.Value);
-        foreach (var panel in _statusPanels) panel.SetHelmet(StatusFollowsHelmet, _helmetCenter);
+        foreach (var panel in _statusPanels)
+        {
+            var offset = panel.Panel != null && panel.Panel.name.StartsWith("TopRightPanel")
+                ? new Vector3(300, -160, 0) : new Vector3(-320, -160, 0);
+            panel.SetHelmet(StatusFollowsHelmet, _helmetCenter, offset, 1.35f);
+        }
+        foreach (var child in _statusChildren) child.placement.SetHelmetLocal(StatusFollowsHelmet, child.position);
     }
     private void SetRootPose()
     {
@@ -106,7 +120,13 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
     private void RestoreStatusPanels()
     {
         foreach (var panel in _statusPanels) panel.Restore();
+        foreach (var child in _statusChildren) child.placement.Restore();
         _statusPolicy.Reset(); StatusFollowsHelmet = false;
+    }
+    private void CacheHelmetChild(Transform parent, string name, Vector3 position)
+    {
+        var child = FindChildStartingWith(parent, name);
+        if (child != null) _statusChildren.Add((new HudPanelPlacement(child), position));
     }
     
     private void MoveHmdPanelToHud(string panelName, Transform noVrHudParent, Vector3 localPosition, Vector3 localScale)
