@@ -41,3 +41,9 @@ Current goal phase: fix seated cockpit origin/head movement, validate eye/HUD tr
 - [ ] Integrate stopped-game managed XR replacement and its backups into product deploy/rollback.
 
 Next physical checkpoint: docs/development/seated-head-test.md. No cockpit fix, gaze or HUD acceptance is claimed from compilation.
+
+- [x] Optional Frame normal Xbox gamepad bridge built, tested, deployed and enabled as requested.
+- [x] Actual game detects assigned XInput Gamepad 1 alongside both VKB HOTAS devices.
+- [ ] FRAME-GAMEPAD: actual controls/remapping/flight, UI trigger suppression, single pause, focus/reconnect neutralization and exit cleanup acceptance.
+- [x] Stable validated seated pose implementation and regression tests (including delayed aircraft-change calibration).
+- [ ] Previous cockpit yaw failure retested against a7d82f4; no fix acceptance claimed yet.
