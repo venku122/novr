@@ -404,3 +404,9 @@ docs/superpowers/
 .deep-diff/
 skills-lock.json
 .kilo/plans/
+
+# Local Steam Frame development stages and private playtest evidence
+staging/
+playtest/sessions/
+.agent/long-horizon/evidence/*
+!.agent/long-horizon/evidence/.gitkeep
