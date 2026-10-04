@@ -9,3 +9,5 @@
 2026-10-04T00:51:57.733540+00:00 Controller feedback: 7c6fb1e adds bounded optional haptics and cached UI snapshots; review disabled-button pulse issue fixed. Build f566a5807c724c90ad714496b82ddac9 and payload integrity pass; no physical data or live mutation.
 
 2026-10-04T00:53:21.245543+00:00 Blocked audit: previous turn was progress (haptics/snapshots); same physical-evidence gate persists over three goal turns. Current audit: clean worktree, 29 staged hashes valid, no live Nuclear Option process, no real local input records. Stop speculative input work; require documented physical baseline/candidate acceptance. Goal incomplete.
+
+2026-10-04T01:38:21.798491+00:00 User confirmed translated native Frame pointer/trigger; 0c266d9 adds raw before-render visuals, grip Auto hand switching, async installed static models. Policy and actual installed assets tests pass; independent review cleanup fixed; Windows stage b1b23c6b6bc24ad18775e3dc8c88bcda hashes valid, installed stopped-game. Physical retest underway.

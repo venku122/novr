@@ -1,6 +1,6 @@
 # Steam Frame controller / eye gaze hardware checkpoint
 
-Source commit: `7c6fb1ef0301edcdb6e1075a14330ec753771e7a`. Stage: `staging/20261004T005037717Z-5f81d568`; build ID: `f566a5807c724c90ad714496b82ddac9`. This is an opt-in, reviewed, compiled candidate, not hardware acceptance. Controller UI is the immediate priority; voice/video tooling is deferred. No live files were changed during this build.
+Source commit: `0c266d90e0928c8df940dd85f0364a648a49fe06`. Stage: `staging/20261004T013512055Z-18b52c0f`; build ID: `b1b23c6b6bc24ad18775e3dc8c88bcda`. This is an opt-in, reviewed, compiled candidate, not hardware acceptance. Controller UI is the immediate priority; voice/video tooling is deferred. No live files were changed during this build.
 
 ## Preserve the failing-session baseline
 
@@ -12,7 +12,7 @@ In Windows PowerShell from this checkout, with Nuclear Option stopped:
 
 ```powershell
 $env:NUCLEAR_OPTION_GAME_DIR = 'D:\SteamLibrary\steamapps\common\Nuclear Option' # Replace if installed elsewhere.
-./scripts/deploy-dev.ps1 -StageDirectory 'staging/20261004T005037717Z-5f81d568'
+./scripts/deploy-dev.ps1 -StageDirectory 'staging/20261004T013512055Z-18b52c0f'
 ```
 
 The script validates build integrity and the stopped-game gate, backs up replaced files and records rollback information. It refuses a running game. Back up `BepInEx/config/deltawing.novr.cfg` separately; deployment/rollback does not replace configuration. Add/update these entries in the existing sections:
@@ -23,6 +23,8 @@ Enable Steam Frame Input = true
 Pointer Hand = Auto
 Scroll Speed = 8
 UI Haptics = true
+Controller Pose Smoothing = false
+Show Frame Controller Models = true
 Enable Eye Tracking = true
 Show Gaze Reticle = true
 Helmet HUD Tracking = Head
@@ -54,3 +56,11 @@ For normal play disable raw session diagnostics. To undo the candidate, stop the
 UI input uses Unity EventSystem events, not Windows mouse injection or aircraft axis mappings. Both hands, hysteresis, reconnect hold safety and pointer cancellation have deterministic policy tests. Hover/drag/scroll/navigation, HOTAS coexistence, gaze validity, UI coordinate calibration and headset performance require the physical test above. Activation haptics check device capability; physical feedback still requires verification. Eye tracking is gaze pose/diagnostics/reticle only; foveation and gaze-based selection/weapon targeting are outside this change.
 
 Valve sources: [Frame custom-engine input and eye gaze](https://partner.steamgames.com/doc/steamhardware/steamframe/engines/custom?l=english), [Unity integration](https://github.com/ValveSoftware/Unity/blob/main/com.valvesoftware.openxr.utils/Documentation~/index.md). The native profile is reproduced with attribution and its BSD license from pinned Valve commit `329c81f5a97a7f9e7740cf4307f1bfa9ce090b3a`.
+
+## Motion / grip / model retest (0c266d9)
+
+Tester confirmed native Frame profiles on both hands, full VR, trigger selection and correct translated ray on 7c6fb1e. Reported sluggish movement, no grip switching and missing meshes. This candidate disables legacy filtering by default, refreshes visual poses just before rendering without additional EventSystem input, and supports persistent grip-selected hands in Auto. Explicit Left/Right preferences remain fixed. A grip pressed during a held drag cannot steal ownership; release it and squeeze again afterward.
+
+Move a controller at a fixed orientation in three axes, then rotate it briskly; compare lag with the prior build. Squeeze left grip, release, select with left trigger; repeat right. Test a slider drag while squeezing the other grip. Both actual Frame meshes should follow grip pose, including during reconnect. Meshes/textures/anchors load from installed SteamVR resources discovered through openvrpaths.vrpath; no Valve art is packaged and no OpenVR runtime is initialized. Models are static: button/thumbstick animations are not included.
+
+Development evidence includes deterministic hand policy/geometry tests and parsing both actual installed asset sets (44,658/48,720 vertices), reviewed lifecycle cleanup, Windows build (471 warnings, zero errors), and 30 payload hashes. Physical performance, grip switching and rendered asset alignment remain pending until observed. Eye/HUD options stay disabled for this focused comparison.
