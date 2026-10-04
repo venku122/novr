@@ -50,3 +50,10 @@ Next physical checkpoint: docs/development/seated-head-test.md. No cockpit fix, 
 
 - [x] In-headset UI + HOTAS / UI + GAMEPAD mode selector, persisted main config, default UI + HOTAS.
 - [ ] Physical live mode-switch/removal/reconnect, pointer/HOTAS and persistence acceptance.
+
+Current user acceptance: controller mode setting worked, head tracking stayed centered, and a complete mission succeeded.
+- [x] SEATED-HEAD: actual centered mission acceptance reported by tester.
+- [x] In-headset controller mode setting accepted by tester; exhaustive reconnect/cleanup matrix remains pending.
+- [x] Native combined OpenXR gaze cueing and Smart helmet status implementation prepared.
+- [ ] Eye-directed cue/Select, sharing fallback, Smart forward/away/down placement and numeric visor visibility headset review.
+Review: docs/development/frame-gaze-hud-review.md.
