@@ -84,3 +84,14 @@ Actual readable layout/notifications, mission-entry neutral seat and eye cue sel
 
 ## Next action
 Game process55468 launched (session29458). Recorder session10872 waits600seconds then records60seconds of actual cockpit head+gaze/HUD to playtest/sessions/20261004T044900065Z-seated-head. Sit comfortably and recenter once; briefly lean during mission entry and return neutral, yaw/lean/recenter; inspect lower HUD, killfeed/chat/mission and rank marks. Keep head still and move eyes, report actual gaze source/status if unavailable. Review docs/development/frame-gaze-hud-review.md and frame-gaze-input.md. Original full development-loop goal remains incomplete.
+
+
+# Pause-menu VR UI settings checkpoint
+
+User requests live settings during a mission. Added VR UI SETTINGS alongside the pause-menu Recenter entry, independent of the optional recenter/native-frontend toggles. Reuses the existing settings panel in a dedicated world-space pause overlay, hides/restores only the stock pause CanvasGroup, leaves native pause state/timers/flight inputs intact. BACK/controller cancel returns to pause, Resume/Escape/menu replacement/scene exit cleans up, delayed recenter cancels on close, first button supports keyboard navigation.
+
+Source5055a39 +e06d398. Final actual-reference staging build18d08c4b7fa2453f89ce0aac5a3e620f, staging/20261004T050444579Z-6b159f1c passed zero errors with inherited warnings. Existing diagnostic/controller/camera/gaze/gamepad/HUD and deployment/launch/capture checks passed; optional Windows Node unavailable/skipped. Source snapshot hashes verified. Independent read-only review found no important lifecycle/routing defects. No headset acceptance from compile/review.
+
+Not deployed: NuclearOption process55468 is still running. User asked to exit before safe installation/relaunch; no process killed and no live files replaced. Prior deployedfac0f64 candidate remains. Manual test after installation: mission pause→VR UI SETTINGS, change HUD/sight/controller mode, BACK returns to pause, Resume removes overlay, reopen verifies persistence/one button, check pointer/mouse/keyboard/HOTAS. Review docs/development/pause-vr-ui-settings.md.
+
+Pause settings installed after explicitly authorized clean window close;34/34hashes verified; process39840 relaunched. New physical checkpoint in PAUSE-SETTINGS-HANDOFF.md.

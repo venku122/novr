@@ -61,3 +61,7 @@ Review: docs/development/frame-gaze-hud-review.md.
 - [x] Diagnose86sample HUD/gaze/seat feedback: auto-reference overwrite, PoseControl collision, inherited high status and fixed notification owners.
 - [x] Build/deploy revised stable seat reference, native XR gaze fallback, lower/larger HUD and notification follower with tested lifecycle.
 - [ ] Physical retest: spawn lean/neutral seat, readable status, kill feed/chat/mission/rank tracking, actual eye cue selection.
+
+- [x] VR UI SETTINGS pause-menu entry and shared in-mission overlay built/reviewed/staged.
+- [x] Install pause settings after explicitly authorized clean game exit and relaunch.
+- [ ] Verify pause→settings→back→resume and persisted settings in headset.

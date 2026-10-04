@@ -6,7 +6,7 @@
     "objective": "Prioritize actual Steam Frame controller UI and HOTAS coexistence, optional eye gaze and head-following helmet HUD; retain safe development loop and evidence-based hardware acceptance.",
     "status": "active",
     "created_at": "2026-10-03T18:10:32-05:00",
-    "updated_at": "2026-10-04T04:51:14.738087+00:00"
+    "updated_at": "2026-10-04T05:09:44.631984+00:00"
   },
   "control": {
     "mode": "single-executor",
@@ -560,18 +560,18 @@
   "blockers": [],
   "next_action": {
     "task_id": "FRAME-HUD",
-    "reason": "Recenter comfortably seated, lean forward during spawn then return neutral; verify readable lower helmet HUD, head-following notifications, and actual native gaze source with paired telemetry."
+    "reason": "Headset test mission pause\u2192VR UI SETTINGS\u2192change\u2192Back\u2192Resume and persistence/controller/keyboard fallback, plus previous gaze/HUD/seat retest with paired evidence."
   },
   "termination": {
     "condition": null,
     "summary": "Controller operation, mode setting and centered mission accepted. New gaze/HUD implementation awaiting actual headset review; original full development-loop mission remains incomplete."
   },
   "artifacts": {
-    "stage_directory": "staging/20261004T044721799Z-0fb6d9c0",
-    "build_id": "c1ce53d7ed3d40b1a7e461fe851d8003",
-    "code_commit": "fac0f6456b58210175678bd765bce954e004c247",
+    "stage_directory": "staging/20261004T050444579Z-6b159f1c",
+    "build_id": "18d08c4b7fa2453f89ce0aac5a3e620f",
+    "code_commit": "e06d398ab11bbc95fb886382d24da5b727bfcfc4",
     "hardware_status": "User accepted prior centered mission/controller mode; latest HUD review reports high status, fixed notifications, missing eye cue and aft seat. Source causes addressed; new actual headset retest pending.",
-    "live_deployment": "Stopped-game deploy; 34/34 payload hashes verified; 530 source snapshot hashes verified; managed XR identical; no config/HOTAS/graphics/privacy changes.",
+    "live_deployment": "User explicitly asked agent to exit game; CloseMainWindow succeeded and game stopped. Pause settings candidate installed34/34payload hashes, rollback preserved, process39840 relaunched. No config changes.",
     "playtest_preparation": "synthetic-tests-pass; actual-headset-pending",
     "controller_candidate": "User confirms controllers, grip switching, models and movement work great on 0c266d9; seated cockpit origin now fails.",
     "gaze_hud": "Native gaze fallback and lowered/readable HUD+head-following notifications deployed; startup extension enabled but native eye device absent, actual headset acceptance pending.",
@@ -580,7 +580,7 @@
     "baseline_snapshots": 456,
     "baseline_evidence_summary": "evidence/live-baseline-summary.json",
     "baseline_session": "playtest/sessions/20261004T011518081Z-steam-frame-baseline",
-    "candidate_launcher_session": 29458,
+    "candidate_launcher_session": 69512,
     "controller_hardware_acceptance": "2026-10-03 user report: controllers work great, switching worked great, models great, movement great. Formal reconnect/drag/scroll/HOTAS matrix retains untested checks.",
     "controller_session": "playtest/sessions/20261004T014111522Z-steam-frame-baseline (407 input snapshots, run exited)",
     "head_capture_session": 57397,
@@ -588,8 +588,19 @@
     "head_capture_status": "Completed 98 actual cockpit samples on prior a7d82f4 candidate. Valid InputSystem/centerEye; calibration sequences 2/3, manual and aircraft-change only. Physical cockpit stability still requires user report. Latest user confirms head stayed centered for a completed mission.",
     "gamepad": "Previously actual game detected assigned XInput Gamepad 1 alongside HOTAS. New main config Controller Mode UiHotas(default)/UiGamepad controlled live by VR UI Settings; physical switch acceptance pending. Latest user accepted in-headset setting; exhaustive reconnect/cleanup matrix remains pending.",
     "controller_mode_runtime": "Main config persisted UiHotas; new process 36096, companion loaded without bus-connect log and Windows PnP has no present Xbox 360 endpoint. Read-only game discovery still exposes Steam-associated XInput slot0 (handle32176874, unknown type), so physical UI-only no-flight behavior must be tested; do not infer all gamepad entries disappear or modify Steam settings without evidence.",
-    "gaze_hud_capture_session": 10872,
-    "gaze_hud_evidence_directory": "playtest/sessions/20261004T044900065Z-seated-head",
-    "gaze_hud_runtime_process": 55468
+    "gaze_hud_capture_session": 83628,
+    "gaze_hud_evidence_directory": "playtest/sessions/20261004T050839839Z-seated-head",
+    "gaze_hud_runtime_process": 39840,
+    "pause_settings_candidate": {
+      "commit": "e06d398ab11bbc95fb886382d24da5b727bfcfc4",
+      "stage": "staging/20261004T050444579Z-6b159f1c",
+      "buildId": "18d08c4b7fa2453f89ce0aac5a3e620f",
+      "status": "deployed-relaunched:hardware-pending",
+      "gameProcess": 39840,
+      "review": "Independent read-only lifecycle/routing review found no important defects; full actual-reference stage/tests passed, hardware pending.",
+      "launcherSession": 69512,
+      "captureSession": 83628,
+      "evidenceDirectory": "playtest/sessions/20261004T050839839Z-seated-head"
+    }
   }
 }
