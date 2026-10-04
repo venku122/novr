@@ -47,3 +47,6 @@ Next physical checkpoint: docs/development/seated-head-test.md. No cockpit fix, 
 - [ ] FRAME-GAMEPAD: actual controls/remapping/flight, UI trigger suppression, single pause, focus/reconnect neutralization and exit cleanup acceptance.
 - [x] Stable validated seated pose implementation and regression tests (including delayed aircraft-change calibration).
 - [ ] Previous cockpit yaw failure retested against a7d82f4; no fix acceptance claimed yet.
+
+- [x] In-headset UI + HOTAS / UI + GAMEPAD mode selector, persisted main config, default UI + HOTAS.
+- [ ] Physical live mode-switch/removal/reconnect, pointer/HOTAS and persistence acceptance.

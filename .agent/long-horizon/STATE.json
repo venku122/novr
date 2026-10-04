@@ -6,7 +6,7 @@
     "objective": "Prioritize actual Steam Frame controller UI and HOTAS coexistence, optional eye gaze and head-following helmet HUD; retain safe development loop and evidence-based hardware acceptance.",
     "status": "active",
     "created_at": "2026-10-03T18:10:32-05:00",
-    "updated_at": "2026-10-04T03:12:03.097629+00:00"
+    "updated_at": "2026-10-04T03:16:52.708542+00:00"
   },
   "control": {
     "mode": "single-executor",
@@ -560,18 +560,18 @@
   "blockers": [],
   "next_action": {
     "task_id": "M6",
-    "reason": "Actual headset retest of stable seated reference and optional Frame gamepad normal flight bindings. Then eye/HUD acceptance."
+    "reason": "In-headset UI + HOTAS \u2192 UI + GAMEPAD \u2192 UI + HOTAS switch/persistence test, verify pointer/HOTAS unchanged; collect cockpit stability feedback, then eye/HUD."
   },
   "termination": {
     "condition": null,
     "summary": "Controller feature accepted by user. Next phase targets seated cockpit, camera telemetry and eye/HUD; original full mission remains incomplete."
   },
   "artifacts": {
-    "stage_directory": "staging/20261004T030833115Z-156761a9",
-    "build_id": "62f0f548c7b243fca8a694e361696b68",
-    "code_commit": "a7d82f49ecd54e4fe524021c7464bfe7a3b31d9e",
+    "stage_directory": "staging/20261004T031451883Z-2d116ce2",
+    "build_id": "79aac58062b24ad8a561e25be57c87a2",
+    "code_commit": "5d46a985a7c5c6069ea9ef7dd7329154ced1b07a",
     "hardware_status": "Controller alignment/switching/models/movement previously user accepted. Previous seated candidate failed yaw test; new stable reference not yet accepted. Eye/HUD pending.",
-    "live_deployment": "a7d82f4 installed only after normal game exit; all 34 payload hashes verified. Existing managed XR hashes identical. Optional gamepad explicitly enabled per user.",
+    "live_deployment": "5d46a98 installed after normal game exit, 34/34 payload hashes match. Relaunched with UI + HOTAS default; no HOTAS mappings changed.",
     "playtest_preparation": "synthetic-tests-pass; actual-headset-pending",
     "controller_candidate": "User confirms controllers, grip switching, models and movement work great on 0c266d9; seated cockpit origin now fails.",
     "gaze_hud": "optional gaze/reticle and Head HUD mode; hardware pending",
@@ -580,12 +580,12 @@
     "baseline_snapshots": 456,
     "baseline_evidence_summary": "evidence/live-baseline-summary.json",
     "baseline_session": "playtest/sessions/20261004T011518081Z-steam-frame-baseline",
-    "candidate_launcher_session": 51855,
+    "candidate_launcher_session": 16121,
     "controller_hardware_acceptance": "2026-10-03 user report: controllers work great, switching worked great, models great, movement great. Formal reconnect/drag/scroll/HOTAS matrix retains untested checks.",
     "controller_session": "playtest/sessions/20261004T014111522Z-steam-frame-baseline (407 input snapshots, run exited)",
     "head_capture_session": 57397,
     "head_evidence_directory": "playtest/sessions/20261004T031014308Z-seated-head",
-    "head_capture_status": "Read-only capture waiting up to 600 seconds for actual seat/game root, then 60 seconds at 2Hz. Previous corrected capture timed out with zero cockpit samples; enum-only capture was menu evidence.",
-    "gamepad": "Live bridge connected XInput slot 0. Read-only Rewired RawInput detects XInput Gamepad 1 assigned alongside both VKB Gladiator EVO devices and Keychron devices. Actual axes/buttons/flight/UI safety/exit cleanup awaiting headset test."
+    "head_capture_status": "Completed 98 actual cockpit samples on prior a7d82f4 candidate. Valid InputSystem/centerEye; calibration sequences 2/3, manual and aircraft-change only. Physical cockpit stability still requires user report.",
+    "gamepad": "Previously actual game detected assigned XInput Gamepad 1 alongside HOTAS. New main config Controller Mode UiHotas(default)/UiGamepad controlled live by VR UI Settings; physical switch acceptance pending."
   }
 }
