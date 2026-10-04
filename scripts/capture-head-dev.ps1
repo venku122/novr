@@ -25,7 +25,8 @@ try {
             # The existing localhost bridge dispatches this read-only tool on Unity's main thread.
             $response = Invoke-RestMethod -Uri "http://localhost:$BridgePort/invoke" -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 2
             $snapshot = $response.result | ConvertFrom-Json
-            if ($snapshot.cameraMode -eq 'Cockpit') {
+            # CameraMode defaults to cockpit even in the front-end; require actual seat/root data.
+            if ($snapshot.cameraMode -eq 'Cockpit' -and $snapshot.seatReference.available -and $snapshot.gameCameraRoot.available) {
                 if (-not $captureDeadline) {
                     $captureDeadline = [DateTime]::UtcNow.AddSeconds($CaptureSeconds)
                     $deadline = $captureDeadline
