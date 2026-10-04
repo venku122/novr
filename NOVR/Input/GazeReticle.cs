@@ -8,7 +8,7 @@ internal sealed class GazeReticle : MonoBehaviour
 {
     private LineRenderer? _ring;
     private Material? _material;
-    private void Start()
+    private void InitializeReticle()
     {
         var shader = Shader.Find("Sprites/Default");
         if (shader == null) { enabled = false; return; }
@@ -27,16 +27,15 @@ internal sealed class GazeReticle : MonoBehaviour
     }
     private void LateUpdate()
     {
+        if (!ModConfiguration.Instance.ShowGazeReticle.Value)
+        { if (_ring != null) _ring.enabled = false; return; }
+        if (_ring == null) InitializeReticle();
         if (_ring == null) return;
         _ring.enabled = false;
-        if (!Application.isFocused || !ModConfiguration.Instance.ShowGazeReticle.Value ||
-            !EyeGazeInput.TryGetTrackingPose(out var gazePosition, out var gazeRotation, out _) ||
-            !VrControllerInput.TryGetHeadPose(out var headPosition, out var headRotation)) return;
+        if (!SpottingAimInput.TryGetUiRay(out var ray) || SpottingAimInput.Source != SpottingAimSource.Eye) return;
         var camera = APIBus.CockpitHudCamera;
         if (camera == null) return;
-        var trackingToUi = camera.transform.rotation * Quaternion.Inverse(headRotation);
-        var origin = camera.transform.position + trackingToUi * (gazePosition - headPosition);
-        var ray = new Ray(origin, trackingToUi * gazeRotation * Vector3.forward);
+        var origin = ray.origin;
         if (!VrCanvasHitTester.RaycastCanvasPlanes(ray, out var hit)) return;
         _ring.transform.position = hit.WorldPoint - ray.direction * .002f;
         _ring.transform.rotation = camera.transform.rotation;

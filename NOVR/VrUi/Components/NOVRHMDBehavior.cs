@@ -2,70 +2,58 @@ using UnityEngine;
 
 namespace NOVR.VrUi.SpecialBehavior;
 
+[DefaultExecutionOrder(500)]
 public class NOVRHMDBehavior : UIRenderedCanvasBehavior
 {
-    
-    
-    private float _offset = 1000;
+    private const float Offset = 1000;
+    private Transform? _speed, _altitude, _bearing, _horizon;
 
-    private void LateUpdate()
+    public override void Awake()
     {
-        var reference = ModConfiguration.Instance.HelmetHudTracking.Value == "Head"
-            ? APIBus.CockpitHudCamera.transform : APIBus.CockpitHudReference.transform;
-        transform.position = reference.position + reference.forward * _offset;
-        transform.rotation = reference.rotation;
-        
-        SetLocalPosition("Speed", new Vector3(-110f, 150f, 0f)); // TODO: Patch game files and use events to set these gameobjects
-        SetLocalPosition("Altitude", new Vector3(110f, 150f, 0f));
-        SetLocalPosition("Bearing", new Vector3(0f, 200f, 0f));
-        SetLocalPosition("Artificial Horizon", new Vector3(0f, 150f, 0f));
+        base.Awake();
+        // Cache known children once. The game's HeadMountedDisplay owns values,
+        // settings and active state; NOVR only preserves its existing VR layout.
+        _speed = FindChildStartingWith(transform, "Speed");
+        _altitude = FindChildStartingWith(transform, "Altitude");
+        _bearing = FindChildStartingWith(transform, "Bearing");
+        _horizon = FindChildStartingWith(transform, "Artificial Horizon");
     }
-
-    private void SetLocalPosition(string childName, Vector3 localPosition)
+    public override void OnEnable()
     {
-        var child = FindChildRecursive(transform, childName);
-        if (child == null)
-        {
-            return;
-        }
-
-        child.localPosition = localPosition;
+        base.OnEnable();
+        Application.onBeforeRender += BeforeRender;
     }
-
-    private void SetLocalPositionRotationAndScale(
-        string childName,
-        Vector3 localPosition,
-        Vector3 localEulerAngles,
-        Vector3 localScale)
+    public override void OnDisable()
     {
-        var child = FindChildRecursive(transform, childName);
-        if (child == null)
-        {
-            return;
-        }
-
-        child.localPosition = localPosition;
-        child.localEulerAngles = localEulerAngles;
-        child.localScale = localScale;
+        Application.onBeforeRender -= BeforeRender;
+        base.OnDisable();
     }
-
-    private static Transform FindChildRecursive(Transform parent, string childName)
+    private void OnDestroy() => Application.onBeforeRender -= BeforeRender;
+    private void LateUpdate() => UpdateLayout();
+    [BeforeRenderOrder(250)]
+    private void BeforeRender() => UpdateLayout();
+    private void UpdateLayout()
     {
-        for (var i = 0; i < parent.childCount; i++)
+        var manager = NOUIManager.I;
+        if (manager == null) return;
+        Transform? reference;
+        if (ModConfiguration.Instance.HelmetHudTracking.Value == "Head")
         {
-            var child = parent.GetChild(i);
-            if (child.name == childName)
-            {
-                return child;
-            }
-
-            var nestedChild = FindChildRecursive(child, childName);
-            if (nestedChild != null)
-            {
-                return nestedChild;
-            }
+            var camera = manager.CockpitHudCamera;
+            if (camera == null) return;
+            reference = camera.transform;
         }
-
-        return null;
+        else
+        {
+            var smoothed = manager.CockpitHudReference;
+            if (smoothed == null) return;
+            reference = smoothed.transform;
+        }
+        if (reference == null) return;
+        transform.SetPositionAndRotation(reference.position + reference.forward * Offset, reference.rotation);
+        if (_speed != null) _speed.localPosition = new Vector3(-110f, 150f, 0);
+        if (_altitude != null) _altitude.localPosition = new Vector3(110f, 150f, 0);
+        if (_bearing != null) _bearing.localPosition = new Vector3(0, 200f, 0);
+        if (_horizon != null) _horizon.localPosition = new Vector3(0, 150f, 0);
     }
 }

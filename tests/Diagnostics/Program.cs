@@ -128,3 +128,5 @@ CameraTrackingTests.Run();
 DiagnosticJsonTests.Run();
 
 SeatedHeadPoseTests.Run();
+
+SpottingAimTests.Run();

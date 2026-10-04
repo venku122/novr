@@ -91,8 +91,8 @@ if (NOVRPlugin.LogSource != null)
             gameObject.AddComponent<Diagnostics.InputDiagnosticCapture>();
         if (ModConfiguration.Instance.EnablePlaytestCapture.Value)
             gameObject.AddComponent<Diagnostics.PlaytestCaptureBridge>();
-        if (ModConfiguration.Instance.EnableEyeTracking.Value && ModConfiguration.Instance.ShowGazeReticle.Value)
-            gameObject.AddComponent<Controllers.GazeReticle>();
+        // Lightweight disabled reticle stays available for live settings changes.
+        gameObject.AddComponent<Controllers.GazeReticle>();
         
     }
 

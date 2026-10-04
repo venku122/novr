@@ -3,7 +3,13 @@ $scriptPath = Join-Path $PSScriptRoot '../scripts/capture-head-dev.ps1'
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('novr-head-capture-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 # Replace only the network boundary; no game tool is called.
-function Invoke-RestMethod { param($Uri, $Method, $ContentType, $Body, $TimeoutSec) return [pscustomobject]@{ result = $global:NovrHeadCaptureTestFixture } }
+function Invoke-RestMethod {
+    param($Uri, $Method, $ContentType, $Body, $TimeoutSec)
+    $tool = ($Body | ConvertFrom-Json).tool
+    if ($tool -eq 'get_gaze_hud_state') { return [pscustomobject]@{ result = '{"aimSource":"Eye","aimValid":true,"uiDirection":{"x":0.1,"y":0,"z":0.99}}' } }
+    if ($tool -ne 'get_vr_head_state') { throw 'Capture must invoke read-only tools only.' }
+    return [pscustomobject]@{ result = $global:NovrHeadCaptureTestFixture }
+}
 try {
     $global:NovrHeadCaptureTestFixture = '{"cameraMode":"cockpit","seatReference":{"available":false},"gameCameraRoot":{"available":false}}'
     $menuOutput = Join-Path $testRoot 'menu'
@@ -21,6 +27,11 @@ try {
     if ($cockpitSession.sampleCount -lt 1 -or $cockpitSession.sampleCount -gt 3) { throw 'Cockpit capture must produce bounded samples.' }
     $first = Get-Content (Join-Path $cockpitOutput 'head.jsonl') | Select-Object -First 1 | ConvertFrom-Json
     if ($first.rawHeadPosition.y -ne 1.2) { throw 'Head capture lost nested numeric telemetry.' }
+    $combinedOutput = Join-Path $testRoot 'head-and-gaze'
+    & $scriptPath -OutputDirectory $combinedOutput -WaitForCockpitSeconds 1 -CaptureSeconds 1 -IncludeGazeHud
+    $combined = Get-Content (Join-Path $combinedOutput 'session.json') -Raw | ConvertFrom-Json
+    $gaze = Get-Content (Join-Path $combinedOutput 'gaze-hud.jsonl') | Select-Object -First 1 | ConvertFrom-Json
+    if (-not $combined.gazeHudRequested -or $combined.gazeHudSamples -ne $combined.sampleCount -or $gaze.aimSource -ne 'Eye' -or $gaze.uiDirection.z -ne .99) { throw 'Head/gaze capture association or nested values lost.' }
     Write-Output 'PASS: front-end default camera enum rejected, actual seat accepted, bounded nested head evidence preserved (mocked read-only bridge).'
 } finally {
     Remove-Variable NovrHeadCaptureTestFixture -Scope Global -ErrorAction SilentlyContinue

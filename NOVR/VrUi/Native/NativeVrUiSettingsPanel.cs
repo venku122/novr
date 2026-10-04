@@ -1,5 +1,6 @@
 using System;
 using NOVR.Controllers;
+using NOVR.VrUi.SpecialBehavior;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,6 +41,8 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
     private Text? _minimapOpacityValueText;
     private Button? _hotasModeButton;
     private Button? _gamepadModeButton;
+    private Text? _eyeRequestText, _aimModeText, _gazeFeedbackText, _hudModeText, _helmetTrackingText, _trackingStatusText;
+    private float _nextTrackingRefresh;
     private Text? _statusText;
     private Action? _close;
     private Action? _recenter;
@@ -147,6 +150,29 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
             "UI + HOTAS: controllers operate menus.\nUI + GAMEPAD: also use normal flight bindings.\nHOTAS stays available in both modes.",
             new Vector2(0f, -92f), new Vector2(390f, 72f), 13, TextAnchor.MiddleCenter, Color.white);
 
+        var sight = CreatePanel("Sight and Helmet Panel", _container, PanelColor,
+            new Vector2(-745f, 0f), new Vector2(420f, 840f));
+        CreateText("Sight Header", sight, "SIGHT AND HELMET", new Vector2(0f, 380f),
+            new Vector2(380f, 30f), 19, TextAnchor.MiddleCenter, Color.white);
+        _eyeRequestText = CreateMenuButton("", sight, new Vector2(0f, 305f), new Vector2(350f, 44f),
+            ButtonColor, ToggleEyeTracking).GetComponentInChildren<Text>();
+        _aimModeText = CreateMenuButton("", sight, new Vector2(0f, 235f), new Vector2(350f, 44f),
+            ButtonColor, CycleSpottingAim).GetComponentInChildren<Text>();
+        _gazeFeedbackText = CreateMenuButton("", sight, new Vector2(0f, 165f), new Vector2(350f, 44f),
+            ButtonColor, ToggleGazeFeedback).GetComponentInChildren<Text>();
+        _hudModeText = CreateMenuButton("", sight, new Vector2(0f, 95f), new Vector2(350f, 44f),
+            ButtonColor, CycleHudStatusMode).GetComponentInChildren<Text>();
+        _helmetTrackingText = CreateMenuButton("", sight, new Vector2(0f, 25f), new Vector2(350f, 44f),
+            ButtonColor, ToggleHelmetTracking).GetComponentInChildren<Text>();
+        CreateText("Sight Help", sight,
+            "Eye Preferred uses gaze when available.\nUse your normal Select control to designate.\nSmart HUD brings status into view looking away.\nAiming and flightpath symbols stay aligned.",
+            new Vector2(0f, -100f), new Vector2(390f, 130f), 14, TextAnchor.MiddleCenter, Color.white);
+        _trackingStatusText = CreateText("Tracking Status", sight, "", new Vector2(0f, -225f),
+            new Vector2(390f, 90f), 13, TextAnchor.MiddleCenter, Color.white);
+        CreateText("Eye Sharing Help", sight,
+            "Eye tracking needs runtime gaze sharing.\nRestart after enabling eye tracking.\nLooking never auto-selects or fires.",
+            new Vector2(0f, -345f), new Vector2(390f, 90f), 13, TextAnchor.MiddleCenter, Color.white);
+
         CreateMenuButton("BACK", _container, new Vector2(NativeUiLayout.FooterLeftX, NativeUiLayout.FooterY), NativeUiLayout.FooterButtonSize, BackButtonColor, Close, 15);
         NativePanelTransition.SetVisible(_container, false, instant: true);
     }
@@ -235,6 +261,72 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
             : "UI + HOTAS selected. Controllers operate menus only.");
     }
 
+    private void ToggleEyeTracking()
+    {
+        var config = ModConfiguration.Instance;
+        config.EnableEyeTracking.Value = !config.EnableEyeTracking.Value;
+        SaveAndRefresh(config.EnableEyeTracking.Value ? "Eye tracking requested. Restart to enable; runtime must share gaze." : "Eye tracking disabled. Eye Preferred falls back to head.");
+    }
+
+    private void CycleSpottingAim()
+    {
+        var config = ModConfiguration.Instance;
+        config.SpottingAim.Value = config.SpottingAim.Value switch
+        {
+            SpottingAimMode.Head => SpottingAimMode.EyePreferred,
+            SpottingAimMode.EyePreferred => SpottingAimMode.EyeOnly,
+            _ => SpottingAimMode.Head,
+        };
+        SaveAndRefresh("Spotting aim updated. Normal Select binding still applies.");
+    }
+
+    private void ToggleGazeFeedback()
+    {
+        var config = ModConfiguration.Instance;
+        config.ShowGazeReticle.Value = !config.ShowGazeReticle.Value;
+        SaveAndRefresh("Gaze feedback updated.");
+    }
+
+    private void CycleHudStatusMode()
+    {
+        var config = ModConfiguration.Instance;
+        config.HudStatusMode.Value = config.HudStatusMode.Value switch
+        {
+            HudStatusMode.Aircraft => HudStatusMode.Helmet,
+            HudStatusMode.Helmet => HudStatusMode.Smart,
+            _ => HudStatusMode.Aircraft,
+        };
+        SaveAndRefresh("Status placement updated. Aiming and flightpath symbols remain aligned.");
+    }
+
+    private void ToggleHelmetTracking()
+    {
+        var config = ModConfiguration.Instance;
+        config.HelmetHudTracking.Value = config.HelmetHudTracking.Value == "Head" ? "Smoothed" : "Head";
+        SaveAndRefresh("Helmet display tracking updated.");
+    }
+
+    private void Update()
+    {
+        if (_container == null || !_container.gameObject.activeInHierarchy || Time.unscaledTime < _nextTrackingRefresh) return;
+        _nextTrackingRefresh = Time.unscaledTime + .5f;
+        RefreshTrackingStatus();
+    }
+
+    private void RefreshTrackingStatus()
+    {
+        if (_trackingStatusText == null) return;
+        EyeGazeInput.TryGetTrackingPose(out _, out _, out var gazeStatus);
+        var source = SpottingAimInput.Source;
+        var gazeLabel = gazeStatus == "tracked" ? "Eyes tracked" : gazeStatus == "disabled" ? "Eye tracking off"
+            : gazeStatus == "application-unfocused" ? "Game not focused"
+            : gazeStatus.StartsWith("extension-not-enabled") ? "Restart needed or gaze unsupported"
+            : gazeStatus.StartsWith("device-unavailable") ? "Gaze unavailable; check sharing"
+            : "Eyes not tracked; check sharing/calibration";
+        var sourceLabel = source == SpottingAimSource.Eye ? "Eye cue" : source == SpottingAimSource.Head ? "Head cue" : "Cue inactive";
+        _trackingStatusText.text = $"{gazeLabel}\n{sourceLabel}";
+    }
+
     private void ToggleNativeUi()
     {
         var config = ModConfiguration.Instance;
@@ -281,6 +373,12 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
     {
         var config = ModConfiguration.Instance;
         RefreshNativeUiToggle(config.EnableNativeMenuUi.Value);
+        if (_eyeRequestText != null) _eyeRequestText.text = "EYE TRACKING: " + (config.EnableEyeTracking.Value ? "ON" : "OFF");
+        if (_aimModeText != null) _aimModeText.text = "SIGHT: " + (config.SpottingAim.Value == SpottingAimMode.EyePreferred ? "EYE PREFERRED" : config.SpottingAim.Value == SpottingAimMode.EyeOnly ? "EYE ONLY" : "HEAD");
+        if (_gazeFeedbackText != null) _gazeFeedbackText.text = "GAZE FEEDBACK: " + (config.ShowGazeReticle.Value ? "ON" : "OFF");
+        if (_hudModeText != null) _hudModeText.text = "STATUS: " + config.HudStatusMode.Value.ToString().ToUpperInvariant();
+        if (_helmetTrackingText != null) _helmetTrackingText.text = "HELMET: " + config.HelmetHudTracking.Value.ToUpperInvariant();
+        RefreshTrackingStatus();
         var gamepad = config.ControllerMode.Value == ControllerUseMode.UiGamepad;
         if (_hotasModeButton != null) NativeButtonFeedback.SetNormalColor(_hotasModeButton, gamepad ? ButtonColor : ToggleOnColor);
         if (_gamepadModeButton != null) NativeButtonFeedback.SetNormalColor(_gamepadModeButton, gamepad ? ToggleOnColor : ButtonColor);

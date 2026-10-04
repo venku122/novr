@@ -68,6 +68,14 @@ public static class PlayerTools
         return capture?.Invoke(null, null) as string ?? "NOVR gamepad diagnostics unavailable.";
     }
 
+    [McpTool("get_gaze_hud_state", "Read-only native OpenXR gaze validity, selected sight source, world/UI rays, Smart HUD state and cached panel transforms. Does not select, recenter or change configuration.")]
+    public static string GetGazeHudState()
+    {
+        var diagnostics = FindType("NOVR.Diagnostics.GazeHudDiagnostics");
+        var capture = diagnostics?.GetMethod("CaptureJson", BindingFlags.Public | BindingFlags.Static);
+        return capture?.Invoke(null, null) as string ?? "NOVR gaze/HUD diagnostics unavailable.";
+    }
+
     private static void AppendProperty(StringBuilder sb, Type type, object instance, string propName)
     {
         var prop = type.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);

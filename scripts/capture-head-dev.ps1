@@ -3,6 +3,7 @@ param(
     [ValidateRange(1,65535)][int]$BridgePort = 3334,
     [ValidateRange(1,600)][int]$WaitForCockpitSeconds = 300,
     [ValidateRange(1,120)][int]$CaptureSeconds = 60,
+    [switch]$IncludeGazeHud,
     [ValidateRange(250,5000)][int]$IntervalMilliseconds = 500
 )
 $ErrorActionPreference = 'Stop'
@@ -18,6 +19,8 @@ $captureDeadline = $null
 $count = 0
 $lastError = ''
 $body = @{ tool='get_vr_head_state'; args=@{} } | ConvertTo-Json -Compress
+$gazeBody = @{ tool='get_gaze_hud_state'; args=@{} } | ConvertTo-Json -Compress
+$gazeCount = 0
 Write-Output "Waiting for cockpit; read-only head evidence: $OutputDirectory"
 try {
     while ([DateTime]::UtcNow -lt $deadline) {
@@ -34,16 +37,23 @@ try {
                 }
                 Add-Content -LiteralPath (Join-Path $OutputDirectory 'head.jsonl') -Value ($snapshot | ConvertTo-Json -Depth 16 -Compress) -Encoding UTF8
                 $count++
+                if ($IncludeGazeHud) {
+                    $gazeResponse = Invoke-RestMethod -Uri "http://localhost:$BridgePort/invoke" -Method Post -ContentType 'application/json' -Body $gazeBody -TimeoutSec 2
+                    $gaze = $gazeResponse.result | ConvertFrom-Json
+                    Add-Content -LiteralPath (Join-Path $OutputDirectory 'gaze-hud.jsonl') -Value ($gaze | ConvertTo-Json -Depth 16 -Compress) -Encoding UTF8
+                    $gazeCount++
+                }
             }
         } catch { $lastError = $_.Exception.Message }
         Start-Sleep -Milliseconds $IntervalMilliseconds
     }
 } finally {
     Write-NovrJson (Join-Path $OutputDirectory 'session.json') ([pscustomobject]@{
-        schemaVersion=1; timestamp=[DateTime]::UtcNow.ToString('O'); kind='seated-head'; sampleCount=$count; bridgePort=$BridgePort;
+        schemaVersion=1; gazeHudRequested=[bool]$IncludeGazeHud; gazeHudSamples=$gazeCount; timestamp=[DateTime]::UtcNow.ToString('O'); kind='seated-head'; sampleCount=$count; bridgePort=$BridgePort;
         intervalMilliseconds=$IntervalMilliseconds; waitForCockpitSeconds=$WaitForCockpitSeconds; captureSeconds=$CaptureSeconds;
-        lastError=$lastError; status=$(if ($count -gt 0) { 'captured' } else { 'no-cockpit-evidence' })
+        lastError=$lastError; status=$(if ($count -eq 0) { 'no-cockpit-evidence' } elseif ($IncludeGazeHud -and $gazeCount -eq 0) { 'head-only:gaze-hud-unavailable' } elseif ($IncludeGazeHud -and $gazeCount -lt $count) { 'partial-gaze-hud' } else { 'captured' })
     })
 }
 if ($count -eq 0) { throw "No cockpit evidence captured. Last bridge error: $lastError" }
+if ($IncludeGazeHud -and $gazeCount -eq 0) { throw "Head evidence captured, but gaze/HUD evidence unavailable. Last bridge error: $lastError" }
 Write-Output "CAPTURED: $count read-only head snapshots in $OutputDirectory"

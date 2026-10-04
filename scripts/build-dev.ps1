@@ -57,6 +57,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Diagnostic policy tests failed.' }
     & $DotNet run --project tests/Gamepad/Gamepad.csproj -c Release '-p:NovrAutoDeploy=false' "-p:NovrIntermediateRoot=$StageDirectory/gamepad-test-obj"
     if ($LASTEXITCODE -ne 0) { throw 'Gamepad routing/lifecycle tests failed.' }
+    & $DotNet run --project tests/Hud/Hud.csproj -c Release '-p:NovrAutoDeploy=false' "-p:NovrIntermediateRoot=$StageDirectory/hud-test-obj"
+    if ($LASTEXITCODE -ne 0) { throw 'HUD placement/policy tests failed.' }
     & "$repo/tests/deployment-safety.ps1"
     & "$repo/tests/launch-safety.ps1"
     & "$repo/tests/head-capture-safety.ps1"
@@ -74,7 +76,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Playtest tests failed; stage is not deployable.' }
         $playtestTestStatus = 'passed; Windows synthetic audio fixture runs only when NOVR_TEST_WINDOWS_AUDIO=1'
     } else { Write-Warning $playtestTestStatus }
-    Write-NovrJson (Join-Path $StageDirectory 'test-summary.json') ([pscustomobject]@{ runtimePolicyAndGesture = 'passed'; gamepadPolicyAndLifecycle = 'passed'; deploymentSafety = 'passed'; launchSafety = 'passed (mocked)'; headCaptureSafety = 'passed (mocked read-only bridge)'; playtest = $playtestTestStatus; hardware = 'not-tested' })
+    Write-NovrJson (Join-Path $StageDirectory 'test-summary.json') ([pscustomobject]@{ runtimePolicyAndGesture = 'passed'; gamepadPolicyAndLifecycle = 'passed'; hudPolicyAndPlacement = 'passed'; deploymentSafety = 'passed'; launchSafety = 'passed (mocked)'; headCaptureSafety = 'passed (mocked read-only bridge)'; playtest = $playtestTestStatus; hardware = 'not-tested' })
     $pluginSource = Get-Content (Join-Path $repo 'NOVR/NOVRPlugin.cs') -Raw
     if ($pluginSource -notmatch '"NOVR",\s*"([^"]+)"') { throw 'Cannot read NOVR plugin version.' }
     Set-Content (Join-Path $StageDirectory 'game/BepInEx/plugins/NOVR/version.txt') ($Matches[1] + '-dev+' + $commit.Trim().Substring(0, 12) + '-diagnostics') -Encoding ASCII
