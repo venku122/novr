@@ -35,3 +35,14 @@ The native interface exposes combined gaze. It does not provide this implementat
 Read-only `get_gaze_hud_state` reports actual native gaze/aim validity, source, calibrated world/UI rays, status mode, head angle and cached panel transforms. `capture-head-dev.ps1 -IncludeGazeHud` waits for a real cockpit, then records a bounded 60-second head + gaze/HUD pair for review. No high-frequency permanent logging or source/flight/config mutation occurs during capture.
 
 For source review: [design and rationale](frame-gaze-hud-design.md). The review candidate still requires actual Frame gaze and rendered HUD acceptance; green tests cover policies and mocked restoration, not headset optics or target selection.
+
+## First headset feedback and follow-up
+Tester reports head tracking works but off-axis status is too high/small, kill feed/chat/mission/level-up stay fixed, native gaze does not move cue, and seat appears aft. 86 paired cockpit samples show gaze device unavailable throughout. Native XR log identifies an Eye Tracking OpenXR device plus InputSystem PoseControl type collision. A native Unity XR gaze read path is being added without replacing XR dependencies.
+
+The seat capture shows manual reference sequence2 replaced by aircraft-change sequence3 while the tester was forward; neutral then sits approximately 18cm aft. Aircraft transitions must apply saved seat offsets without recentering the physical reference. New headInSeatMeters excludes pilot-rig scale, while old headInSeat remains local coordinates. No aircraft-specific magic offset is added.
+
+Follow-up gaze check: the native XR device is now read even if Unity InputSystem rejects its PoseControl layout. That InputSystem error can remain in startup logs without preventing the native fallback. Report actual `gazeTracked`, `gazeDevices.source`, and `gazeStatus`, together with the native gaze/device tracking flags in inventory. Extension enabled or a valid device handle alone is not valid gaze.
+
+Follow-up HUD layout: helmet weapon/status moves below the sightline with larger text scale independent of the aircraft canvas. Speed/altitude sit just below center and bearing below those; aircraft-only layout is restored exactly when selected. In Smart/Helmet, MessageUI (kill feed/mission/chat) and each spawned KillDisplay (rank/new-aircraft/credit) follow the head independently of Smart status being forward or off-axis. Flight-direction symbols and gameplay canvas remain in their existing coordinates.
+
+Retest sequence: comfortably seated, recenter once; enter a mission while briefly leaning forward then return neutral. Confirm no automatic calibrationSequence change at aircraft spawn. Look sideways and down, check status readable below center, trigger a rank/credit notification and inspect chat/kill feed. Hold head still and move eyes between visible contacts; report gaze status/source if the cue still stays head-directed.

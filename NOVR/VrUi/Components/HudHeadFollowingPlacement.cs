@@ -17,11 +17,12 @@ internal static class HudNotificationLayout
 internal sealed class HudHeadFollowingPlacement
 {
     private readonly Transform _root;
-    private readonly Vector3 _position, _offset;
+    private readonly Vector3 _position, _worldPosition, _offset;
     private readonly Quaternion _rotation, _worldRotation;
+    private readonly bool _restoreWorld;
     private bool _following;
-    public HudHeadFollowingPlacement(Transform root, Vector3 offset)
-    { _root = root; _position = root.localPosition; _rotation = root.localRotation; _worldRotation = root.rotation; _offset = offset; }
+    public HudHeadFollowingPlacement(Transform root, Vector3 offset, bool restoreWorld = false)
+    { _root = root; _position = root.localPosition; _worldPosition = root.position; _rotation = root.localRotation; _worldRotation = root.rotation; _offset = offset; _restoreWorld = restoreWorld; }
     public void Apply(Vector3 headPosition, Quaternion headRotation)
     {
         if (_root == null) return;
@@ -30,7 +31,9 @@ internal sealed class HudHeadFollowingPlacement
     }
     public void Restore()
     {
-        if (_root == null || !_following) return;
-        _root.localPosition = _position; _root.localRotation = _rotation; _following = false;
+        if (_root == null || (!_following && !_restoreWorld)) return;
+        if (_restoreWorld) _root.SetPositionAndRotation(_worldPosition, _worldRotation);
+        else { _root.localPosition = _position; _root.localRotation = _rotation; }
+        _following = false;
     }
 }

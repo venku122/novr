@@ -42,6 +42,17 @@ static class PlacementTests
         Check(HudNotificationLayout.Offset(true,new Vector3(0,0,3),new Vector3(0,0,0)).Equals(new Vector3(0,0,3)),"message plane independent of parent first Update order");
         Check(HudNotificationLayout.Offset(true,new Vector3(0,0,3),new Vector3(0,0,3)).Equals(new Vector3(0,0,3)),"message plane stable after parent Update");
         Check(HudNotificationLayout.Offset(false,new Vector3(.2f,.1f,3),new Vector3(0,0,3)).Equals(new Vector3(.2f,.1f,3)),"rank prefab retains native canvas-relative offset");
+        var gameplay=new Transform(); var message=new Transform {localPosition=new Vector3(0,0,3)}; message.SetParent(gameplay,false);
+        var messageFollowing=new HudHeadFollowingPlacement(message,new Vector3(0,0,3),restoreWorld:true);
+        gameplay.localPosition=new Vector3(0,0,3); // First native parent Update after follower Start.
+        messageFollowing.Restore();
+        Check(message.position.Equals(new Vector3(0,0,3)),"MessageUI starts in Aircraft without requiring a prior follow");
+        messageFollowing.Apply(new Vector3(10,20,30),Quaternion.identity); messageFollowing.Restore();
+        Check(message.position.Equals(new Vector3(0,0,3)),"MessageUI fallback restores absolute plane after parent first Update");
+        var rank=new Transform {localPosition=new Vector3(200,100,0)}; rank.SetParent(gameplay,false);
+        gameplay.localScale=new Vector3(.003f,.003f,.003f); // Native Update before first LateUpdate capture.
+        var rankOffset=HudNotificationLayout.Offset(false,rank.position,gameplay.position);
+        Check(Math.Abs(rankOffset.x-.6f)<.00001f&&Math.Abs(rankOffset.y-.3f)<.00001f,"rank offset captures established scaled canvas rather than raw pixels");
         notice.SetParent(aircraft,false); notice.gameObject.activeSelf=false;
         var originalNoticePosition=notice.localPosition;
         var following=new HudHeadFollowingPlacement(notice,new Vector3(1,2,3));

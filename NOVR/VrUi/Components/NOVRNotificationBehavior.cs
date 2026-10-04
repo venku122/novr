@@ -8,8 +8,9 @@ namespace NOVR.VrUi.SpecialBehavior;
 public sealed class NOVRNotificationBehavior : UIRenderedCanvasBehavior
 {
     private HudHeadFollowingPlacement? _placement;
-    private void Start()
+    private void InitializePlacement()
     {
+        if (_placement != null) return;
         bool isMessageRoot = GetComponent<MessageUI>() != null;
         if (isMessageRoot)
         {
@@ -19,13 +20,14 @@ public sealed class NOVRNotificationBehavior : UIRenderedCanvasBehavior
         }
         var canvas = GetComponentInParent<Canvas>();
         var origin = canvas != null && canvas.transform != transform ? canvas.transform.position : new Vector3(0, 0, 3);
-        _placement = new HudHeadFollowingPlacement(transform, HudNotificationLayout.Offset(isMessageRoot, transform.position, origin));
-        UpdatePose();
+        _placement = new HudHeadFollowingPlacement(transform, HudNotificationLayout.Offset(isMessageRoot, transform.position, origin), restoreWorld: isMessageRoot);
     }
     public override void OnEnable() { base.OnEnable(); Application.onBeforeRender += BeforeRender; }
     public override void OnDisable() { Application.onBeforeRender -= BeforeRender; _placement?.Restore(); base.OnDisable(); }
     private void OnDestroy() { Application.onBeforeRender -= BeforeRender; _placement?.Restore(); }
-    private void LateUpdate() => UpdatePose();
+    // Capture after native GameplayUI.Update establishes the canvas plane and
+    // .003 scale; Start can run before that first parent update.
+    private void LateUpdate() { InitializePlacement(); UpdatePose(); }
     [BeforeRenderOrder(260)]
     private void BeforeRender() => UpdatePose();
     private void UpdatePose()
