@@ -38,13 +38,21 @@ internal static class SeatedHeadPoseTests
         if (pose.RecenterTranslation(7, false, seat, "untracked")) throw new Exception("Cannot calibrate invalid tracking");
         pose.UpdateRaw(true, new Vector3(float.NaN, 0, 0), Quaternion.Identity);
         Near(pose.Position, seat, "Nonfinite sample cannot poison camera transforms");
-        pose.RecenterTranslation(7, false, new Vector3(.02f, 0, .12f), "aircraft-change");
-        if (pose.CalibrationSequence != 2) throw new Exception("Aircraft recenter must wait for tracked pose");
-        pose.UpdateRaw(true, center + Vector3.UnitX, Quaternion.Identity);
-        Near(pose.Position, new Vector3(.02f, 0, .12f), "Pending aircraft recenter applies new seat offset once");
-        if (pose.CalibrationSequence != 3 || pose.CalibrationReason != "aircraft-change") throw new Exception("Pending explicit aircraft recenter applied once");
-        pose.UpdateRaw(true, center + Vector3.UnitX, Quaternion.Identity);
-        if (pose.CalibrationSequence != 3) throw new Exception("Pending recenter must not repeat");
+        var stable = new SeatedHeadPose();
+        stable.UpdateRaw(true, center, Quaternion.Identity);
+        stable.RecenterTranslation(7, false, seat, "manual");
+        stable.UpdateRaw(true, center + Vector3.UnitZ * .3f, Quaternion.Identity);
+        stable.SetSeatOffset(new Vector3(.02f, 0, .12f));
+        Near(stable.Position, new Vector3(.02f, 0, .42f), "Aircraft transition preserves physical forward lean");
+        stable.UpdateRaw(true, center, Quaternion.Identity);
+        Near(stable.Position, new Vector3(.02f, 0, .12f), "Returning neutral after spawn must not move view aft");
+        if (stable.CalibrationSequence != 1 || stable.CalibrationReason != "manual") throw new Exception("Aircraft offset cannot erase manual reference");
+        stable.UpdateRaw(false, Vector3.Zero, Quaternion.Identity);
+        stable.SetSeatOffset(new Vector3(0, 0, .2f));
+        stable.UpdateRaw(true, center, Quaternion.Identity);
+        Near(stable.Position, new Vector3(0, 0, .2f), "Untracked aircraft transition updates only offset");
+        stable.SetSeatOffset(new Vector3(float.NaN, 0, 1));
+        Near(stable.Position, new Vector3(0, 0, .2f), "Invalid seat offset rejected");
         Console.WriteLine("PASS: fixed-position yaw, 10000 reacquisition updates, invalid-pose freeze, seated lean/return, shared yaw space and explicit recenter");
     }
 }

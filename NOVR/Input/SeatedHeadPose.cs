@@ -7,7 +7,6 @@ namespace NOVR.Controllers;
 /// freezes the last valid pose; reacquisition never changes that reference.</summary>
 internal sealed class SeatedHeadPose
 {
-    private (byte axes, bool preserve, Vector3 offset, string reason)? _pendingAircraftRecenter;
     public bool TrackingValid { get; private set; }
     public bool HasPose { get; private set; }
     public bool HasReference { get; private set; }
@@ -31,32 +30,27 @@ internal sealed class SeatedHeadPose
         RawPosition = position;
         RawRotation = Quaternion.Normalize(rotation);
         HasPose = true;
-        if (_pendingAircraftRecenter is { } pending)
-        {
-            _pendingAircraftRecenter = null;
-            RecenterTranslation(pending.axes, pending.preserve, pending.offset, pending.reason);
-        }
     }
 
     public bool RecenterTranslation(byte axes, bool preserveOtherAxes, Vector3 seatOffset, string reason)
     {
-        if (!TrackingValid)
-        {
-            // An explicit aircraft transition remains pending; ordinary tracking
-            // reacquisition never changes an established reference.
-            if (reason == "aircraft-change") _pendingAircraftRecenter = (axes, preserveOtherAxes, seatOffset, reason);
-            return false;
-        }
-        _pendingAircraftRecenter = null;
+        if (!TrackingValid) return false;
         TranslationCalibration = new Vector3(
             (axes & 1) != 0 ? -RawPosition.X : preserveOtherAxes ? TranslationCalibration.X : 0,
             (axes & 2) != 0 ? -RawPosition.Y : preserveOtherAxes ? TranslationCalibration.Y : 0,
             (axes & 4) != 0 ? -RawPosition.Z : preserveOtherAxes ? TranslationCalibration.Z : 0);
-        SeatOffset = seatOffset;
+        SetSeatOffset(seatOffset);
         HasReference = true;
         CalibrationSequence++;
         CalibrationReason = reason;
         return true;
+    }
+
+    // Aircraft/configuration changes move the nominal seat, never the physical
+    // reference. Recenter only on first validated pose or explicit user action.
+    public void SetSeatOffset(Vector3 offset)
+    {
+        if (Finite(offset.X) && Finite(offset.Y) && Finite(offset.Z)) SeatOffset = offset;
     }
 
     private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);

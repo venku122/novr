@@ -26,6 +26,13 @@ public class NOVRHeadsetData : NOVRBehaviour
 
     public static void SetAnchor(Vector3 anchor) => Pose.Anchor = ToNumerics(anchor);
 
+    public static void ApplySeatOffsets()
+    {
+        var config = ModConfiguration.Instance;
+        Pose.SetSeatOffset(new NumericsVector(config.CockpitHeadRightOffset.Value, 0, config.CockpitHeadForwardOffset.Value));
+        PublishPose();
+    }
+
     public static void CalibrateTranslation(CalibrationAxes calibrationAxes = CalibrationAxes.All, bool overrideExistingInNonCalibratedAxes = false, string reason = "manual")
     {
         RefreshRawPose();
@@ -62,6 +69,7 @@ public class NOVRHeadsetData : NOVRBehaviour
     private static void UpdateTransform()
     {
         RefreshRawPose();
+        ApplySeatOffsets();
         // Initialize once from a validated pose. Reacquisition events are not recenter commands.
         if (Pose.NeedsInitialReference) CalibrateTranslation(reason: "first-valid-head-pose");
         PublishPose();

@@ -66,7 +66,13 @@ public static class CockpitDiagnostics
             {
                 snapshot.headInAircraft = aircraft.transform.InverseTransformPoint(camera.transform.position);
                 if (aircraft.cockpitViewPoint != null)
-                    snapshot.headInSeat = aircraft.cockpitViewPoint.InverseTransformPoint(camera.transform.position);
+                {
+                    var seat = aircraft.cockpitViewPoint;
+                    snapshot.headInSeat = seat.InverseTransformPoint(camera.transform.position);
+                    // Pilot rig scaling makes local coordinates differ from meters.
+                    snapshot.headInSeatMeters = Quaternion.Inverse(seat.rotation) * (camera.transform.position - seat.position);
+                    snapshot.seatWorldScale = seat.lossyScale;
+                }
             }
         }
         return snapshot;
@@ -85,7 +91,7 @@ internal sealed class CockpitSnapshot
     public int schemaVersion = 1, frame, calibrationSequence;
     public string timestamp = "", aircraft = "", cameraMode = "", calibrationReason = "", headPoseSource = "";
     public bool headTracked, headPositionValid, headRotationValid;
-    public Vector3 rawHeadPosition, calibratedHeadPosition, translationAnchor, translationCalibration, headInAircraft, headInSeat;
+    public Vector3 rawHeadPosition, calibratedHeadPosition, translationAnchor, translationCalibration, headInAircraft, headInSeat, headInSeatMeters, seatWorldScale;
     public Quaternion rawHeadRotation, calibratedHeadRotation, rotationCalibration;
     public float seatForwardOffset, seatRightOffset;
     public TransformSnapshot vrCamera = new(), gameCameraRoot = new(), cameraPivot = new(), aircraftRoot = new(), cockpit = new(), seatReference = new(), pilot = new();
