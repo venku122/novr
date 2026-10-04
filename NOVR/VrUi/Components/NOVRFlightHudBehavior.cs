@@ -11,6 +11,7 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
     private HudPanelPlacement[] _statusPanels = System.Array.Empty<HudPanelPlacement>();
     private readonly System.Collections.Generic.List<(HudPanelPlacement placement, Vector3 position)> _statusChildren = new(3);
     private Transform? _helmetCenter;
+    private HudPanelPlacement? _compactWeapon;
     internal bool HelmetCenterAvailable => _helmetCenter != null && _helmetCenter.gameObject.activeInHierarchy;
     public bool StatusFollowsHelmet { get; private set; }
     public float StatusBoresightAngle { get; private set; }
@@ -47,7 +48,6 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
         // these panels move; registered markers keep their projection/visibility.
         var panels = new System.Collections.Generic.List<HudPanelPlacement>(2);
         var topRight = FindChildStartingWith(transform, "TopRightPanel");
-        var lowerLeft = FindChildStartingWith(transform, "LowerLeftPanel");
         if (topRight != null) panels.Add(new HudPanelPlacement(topRight));
         if (topRight != null)
         {
@@ -55,7 +55,10 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
             CacheHelmetChild(topRight, "PowerPanel", new Vector3(-220, -80, 0));
             CacheHelmetChild(topRight, "weaponPanel", new Vector3(-100, -55, 0));
         }
-        if (lowerLeft != null) panels.Add(new HudPanelPlacement(lowerLeft));
+        // LowerLeft contains hudMapAnchor: its map has an independent angular
+        // layout. Never magnify/reparent that complete subtree with status.
+        var weapon = topRight != null ? FindChildStartingWith(topRight, "weaponPanel") : null;
+        if (weapon != null) _compactWeapon = new HudPanelPlacement(weapon);
         _statusPanels = panels.ToArray();
         var targetDesignator = FindChildStartingWith(transform, "targetDesignator");
         if (targetDesignator != null) targetDesignator.gameObject.AddComponent(typeof(NOVRTargetDesignatorBehavior));
@@ -104,13 +107,17 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
         StatusFollowsHelmet = _statusPolicy.UseHelmet(ModConfiguration.Instance.HudStatusMode.Value,
             StatusBoresightAngle, ModConfiguration.Instance.HudSmartAngle.Value, referenceValid,
             ModConfiguration.Instance.HudCockpitDeclutter.Value, StatusLookingDownAngle, ModConfiguration.Instance.HudDeclutterDownAngle.Value);
+        bool compact = HudPeripheralLayout.Compact(ModConfiguration.Instance.HudStatusMode.Value, ModConfiguration.Instance.HudStatusDetail.Value);
+        bool fullHelmet = StatusFollowsHelmet && !compact;
+        if (!StatusFollowsHelmet || !compact) _compactWeapon?.Restore();
         foreach (var panel in _statusPanels)
         {
-            var offset = panel.Panel != null && panel.Panel.name.StartsWith("TopRightPanel")
-                ? new Vector3(300, -160, 0) : new Vector3(-320, -160, 0);
-            panel.SetHelmet(StatusFollowsHelmet, _helmetCenter, offset, 1.35f);
+            var offset = new Vector3(300, -160, 0);
+            panel.SetHelmet(fullHelmet, _helmetCenter, offset, HudPeripheralLayout.StatusScale(ModConfiguration.Instance.HudStatusScale.Value));
         }
-        foreach (var child in _statusChildren) child.placement.SetHelmetLocal(StatusFollowsHelmet, child.position);
+        foreach (var child in _statusChildren) child.placement.SetHelmetLocal(fullHelmet, child.position);
+        if (compact && StatusFollowsHelmet)
+            _compactWeapon?.SetHelmet(true, _helmetCenter, HudPeripheralLayout.WeaponOffset, HudPeripheralLayout.StatusScale(ModConfiguration.Instance.HudStatusScale.Value));
     }
     private void SetRootPose()
     {
@@ -119,6 +126,7 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
     }
     private void RestoreStatusPanels()
     {
+        _compactWeapon?.Restore();
         foreach (var panel in _statusPanels) panel.Restore();
         foreach (var child in _statusChildren) child.placement.Restore();
         _statusPolicy.Reset(); StatusFollowsHelmet = false;

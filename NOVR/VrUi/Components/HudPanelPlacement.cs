@@ -48,6 +48,15 @@ internal sealed class HudPanelPlacement
         else Restore();
     }
     private static bool ValidScale(float value) => !float.IsNaN(value) && !float.IsInfinity(value) && System.Math.Abs(value) > .00001f;
+    public void SetWorldLayout(Vector3 position, Quaternion rotation, float worldScale)
+    {
+        if (Panel == null || Panel.parent == null) return;
+        var scale = Panel.parent.lossyScale;
+        if (!ValidScale(scale.x) || !ValidScale(scale.y) || !ValidScale(scale.z)) { Restore(); return; }
+        Panel.SetPositionAndRotation(position, rotation);
+        Panel.localScale = new Vector3(worldScale / scale.x, worldScale / scale.y, worldScale / scale.z);
+        _helmet = true;
+    }
     public void SetHelmetLocal(bool helmet, Vector3 position)
     {
         if (Panel == null) return;

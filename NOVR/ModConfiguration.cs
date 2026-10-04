@@ -54,6 +54,9 @@ public class ModConfiguration
     public readonly ConfigEntry<bool> SavePositionTrigger;
     public readonly ConfigEntry<float> MapClickMaxRadius;
     public readonly ConfigEntry<float> HudMinimapOpacity;
+    public readonly ConfigEntry<float> HudMinimapSize;
+    public readonly ConfigEntry<float> HudStatusScale;
+    public readonly ConfigEntry<NOVR.VrUi.SpecialBehavior.HudStatusDetail> HudStatusDetail;
 
     private readonly Dictionary<string, (ConfigEntry<float> Forward, ConfigEntry<float> Right)> _perPlaneEntries = new();
 
@@ -231,6 +234,9 @@ public class ModConfiguration
             1.0f,
             "Opacity of the in-cockpit minimap (the small map in the HUD, not the full clickable map). " +
             "1.0 is fully opaque, 0.0 hides it completely. Applies only when the minimap is shown; the full map view is unaffected.");
+        HudMinimapSize = config.Bind("HUD", "Minimap Angular Size", 12f, new ConfigDescription("Compact HUD minimap angular diameter in degrees; full tactical map is unchanged.", new AcceptableValueRange<float>(6, 22)));
+        HudStatusScale = config.Bind("HUD", "Helmet Status Scale", .9f, new ConfigDescription("World scale for peripheral helmet status; native aircraft layout is unchanged.", new AcceptableValueRange<float>(.6f, 1.35f)));
+        HudStatusDetail = config.Bind("HUD", "Smart Status Detail", NOVR.VrUi.SpecialBehavior.HudStatusDetail.Compact, "Compact Smart follows weapon and numeric readouts only; secondary panels retain aircraft placement. Full follows the full status panel. Targeting and flight symbols are unchanged.");
 
         SavePositionTrigger.SettingChanged += (_, _) =>
         {

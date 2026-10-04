@@ -3,4 +3,5 @@
   <ItemGroup><Compile Include="../../NOVR/VrUi/Components/HudStatusPolicy.cs" Link="HudStatusPolicy.cs" /><Compile Include="../../NOVR/VrUi/Components/HudPanelPlacement.cs" Link="HudPanelPlacement.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../NOVR/VrUi/Components/HmdNumericVisibilityPolicy.cs" Link="HmdNumericVisibilityPolicy.cs" /><Compile Include="../../NOVR/Patches/HUD/ExactCallReplacement.cs" Link="ExactCallReplacement.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../NOVR/VrUi/Components/HudHeadFollowingPlacement.cs" Link="HudHeadFollowingPlacement.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../NOVR/VrUi/Components/HudPeripheralLayout.cs" Link="HudPeripheralLayout.cs" /></ItemGroup>
 </Project>

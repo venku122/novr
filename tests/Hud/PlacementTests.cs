@@ -32,6 +32,29 @@ static class PlacementTests
         Check(Math.Abs(panel.position.y-helmet.position.y+160)<.001f,"helmet status stays below sightline despite inherited canvas scale");
         Check(Math.Abs(panel.lossyScale.x-1.35f)<.001f,"helmet text scale independent of aircraft canvas scale");
         placement.Restore(); Check(panel.localScale.Equals(scale)&&panel.localPosition.Equals(position),"explicit helmet layout restores aircraft pose exactly");
+        var map=new RectTransform {localPosition=new Vector3(0,0,0),localScale=new Vector3(1,1,1),sizeDelta=new Vector2(550,550)};
+        map.SetParent(panel,false); var nativeMapParent=map.parent; var mapLayout=new HudPanelPlacement(map);
+        mapLayout.SetWorldLayout(new Vector3(-531,-325,1000),Quaternion.identity,HudPeripheralLayout.MinimapWorldSize(12)/550);
+        Check(map.parent==nativeMapParent&&map.sizeDelta.Equals(new Vector2(550,550)),"compact minimap retains native parent and geographic viewport");
+        Check(Math.Abs(map.lossyScale.x*550-HudPeripheralLayout.MinimapWorldSize(12))<.001f,"map diameter independent of nested HUD scale");
+        mapLayout.Restore(); Check(map.localScale.Equals(new Vector3(1,1,1)),"map restores native scale before tactical reparent");
+        var tactical=new Transform(); map.SetParent(tactical,false); map.localScale=new Vector3(1,1,1); map.sizeDelta=new Vector2(900,900);
+        mapLayout.Restore(); Check(map.parent==tactical&&map.sizeDelta.Equals(new Vector2(900,900)),"later restore cannot overwrite maximized native map");
+        var status=new Transform {localPosition=new Vector3(330,290,0),localScale=new Vector3(.6f,.6f,.6f)}; status.SetParent(aircraft,false);
+        var weapon=new Transform {localPosition=new Vector3(-100,-55,0),localScale=new Vector3(1,1,1)}; weapon.SetParent(status,false);
+        var secondary=new Transform {localPosition=new Vector3(-370,-55,0)}; secondary.SetParent(status,false);
+        var wholeStatus=new HudPanelPlacement(status); var essentialWeapon=new HudPanelPlacement(weapon);
+        for(int cycle=0;cycle<1000;cycle++)
+        {
+            wholeStatus.SetHelmet(true,helmet,new Vector3(300,-160,0),.9f); // Full.
+            wholeStatus.Restore(); // Full -> Compact, before moving the weapon.
+            essentialWeapon.SetHelmet(true,helmet,HudPeripheralLayout.WeaponOffset,.9f);
+            Check(status.parent==aircraft&&secondary.parent==status&&weapon.parent==helmet,"compact follows only weapon, preserves secondary tree");
+            essentialWeapon.Restore(); wholeStatus.SetHelmet(true,helmet,new Vector3(300,-160,0),.9f); // Compact -> Full.
+            Check(weapon.parent==status,"full reassembles native status subtree");
+            wholeStatus.Restore();
+            Check(status.localPosition.Equals(new Vector3(330,290,0))&&weapon.localPosition.Equals(new Vector3(-100,-55,0)),"mode cycles preserve native status/weapon origins");
+        }
         var countermeasure=new RectTransform {localPosition=new Vector3(-750,-55,0),localScale=new Vector3(1,1,1)};
         countermeasure.SetParent(panel,false); var childLayout=new HudPanelPlacement(countermeasure);
         placement.SetHelmet(true,helmet,readable,1.35f); childLayout.SetHelmetLocal(true,new Vector3(-370,-55,0));

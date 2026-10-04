@@ -32,6 +32,12 @@ static class Program
         Check(!declutter.UseHelmet(HudStatusMode.Smart,40,25,true,true,float.NaN,35),"invalid downward angle safe");
         PlacementTests.Run();
         NumericVisibilityTests.Run();
+        Check(HudPeripheralLayout.Compact(HudStatusMode.Smart,HudStatusDetail.Compact),"Smart defaults to compact essential status");
+        Check(!HudPeripheralLayout.Compact(HudStatusMode.Helmet,HudStatusDetail.Compact),"explicit Helmet keeps full status choice");
+        Check(Math.Abs(HudPeripheralLayout.MinimapWorldSize(12)-210.208f)<.01f,"12 degree map diameter independent of inherited scale");
+        Check(HudPeripheralLayout.MinimapDegrees(float.NaN)==12&&HudPeripheralLayout.MinimapDegrees(90)==22,"minimap config finite and bounded");
+        Check(HudPeripheralLayout.MinimapOffset(true).x+HudPeripheralLayout.MinimapWorldSize(22)/2 < -330,"largest supported minimap remains clear of central sightline");
+        Check(HudPeripheralLayout.NumberOffset(0).x > 400&&HudPeripheralLayout.NumberOffset(2).y < -350,"compact numbers occupy lower peripheral cluster");
         Console.WriteLine("HUD policy tests passed."); return 0;
     }
 }

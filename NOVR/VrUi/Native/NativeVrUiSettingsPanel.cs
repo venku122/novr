@@ -44,6 +44,7 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
     private Text? _eyeRequestText, _aimModeText, _gazeFeedbackText, _hudModeText, _helmetTrackingText, _trackingStatusText;
     private float _nextTrackingRefresh;
     private Text? _statusText;
+    private Text? _minimapSizeText, _statusScaleText, _statusDetailText;
     private Action? _close;
     private Action? _recenter;
 
@@ -150,6 +151,20 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
             "UI + HOTAS: controllers operate menus.\nUI + GAMEPAD: also use normal flight bindings.\nHOTAS stays available in both modes.",
             new Vector2(0f, -92f), new Vector2(390f, 72f), 13, TextAnchor.MiddleCenter, Color.white);
 
+        var hudLayout = CreatePanel("HUD Layout Panel", _container, PanelColor,
+            new Vector2(745f, -240f), new Vector2(420f, 440f));
+        CreateText("HUD Layout Header", hudLayout, "PERIPHERAL HUD", new Vector2(0, 178), new Vector2(380, 30), 19, TextAnchor.MiddleCenter, Color.white);
+        CreateText("Minimap Size Label", hudLayout, "MINIMAP SIZE (FULL MAP UNCHANGED)", new Vector2(0, 120), new Vector2(390, 26), 13, TextAnchor.MiddleCenter, Color.white);
+        CreateMenuButton("-", hudLayout, new Vector2(-145, 75), new Vector2(54, 40), ButtonColor, () => ChangeMinimapSize(-1));
+        _minimapSizeText = CreateText("Minimap Size Value", hudLayout, "", new Vector2(0, 75), new Vector2(170, 38), 16, TextAnchor.MiddleCenter, Color.white);
+        CreateMenuButton("+", hudLayout, new Vector2(145, 75), new Vector2(54, 40), ButtonColor, () => ChangeMinimapSize(1));
+        CreateText("Status Size Label", hudLayout, "HELMET STATUS SIZE", new Vector2(0, 15), new Vector2(390, 26), 13, TextAnchor.MiddleCenter, Color.white);
+        CreateMenuButton("-", hudLayout, new Vector2(-145, -30), new Vector2(54, 40), ButtonColor, () => ChangeStatusSize(-.05f));
+        _statusScaleText = CreateText("Status Size Value", hudLayout, "", new Vector2(0, -30), new Vector2(170, 38), 16, TextAnchor.MiddleCenter, Color.white);
+        CreateMenuButton("+", hudLayout, new Vector2(145, -30), new Vector2(54, 40), ButtonColor, () => ChangeStatusSize(.05f));
+        _statusDetailText = CreateMenuButton("", hudLayout, new Vector2(0, -105), new Vector2(350, 44), ButtonColor, ToggleStatusDetail).GetComponentInChildren<Text>();
+        CreateText("HUD Layout Help", hudLayout, "Compact Smart: weapon and numbers.\nFull: additional status follows the helmet.", new Vector2(0, -170), new Vector2(390, 60), 13, TextAnchor.MiddleCenter, Color.white);
+
         var sight = CreatePanel("Sight and Helmet Panel", _container, PanelColor,
             new Vector2(-745f, 0f), new Vector2(420f, 840f));
         CreateText("Sight Header", sight, "SIGHT AND HELMET", new Vector2(0f, 380f),
@@ -241,6 +256,24 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
         config.HudMinimapOpacity.Value = value;
         SaveAndRefresh("Minimap opacity updated.");
     }
+    private void ChangeMinimapSize(float delta)
+    {
+        var config = ModConfiguration.Instance;
+        config.HudMinimapSize.Value = HudPeripheralLayout.MinimapDegrees(config.HudMinimapSize.Value + delta);
+        SaveAndRefresh("Minimap size updated. Full tactical map unchanged.");
+    }
+    private void ChangeStatusSize(float delta)
+    {
+        var config = ModConfiguration.Instance;
+        config.HudStatusScale.Value = RoundToStep(HudPeripheralLayout.StatusScale(config.HudStatusScale.Value + delta), .05f);
+        SaveAndRefresh("Helmet status size updated.");
+    }
+    private void ToggleStatusDetail()
+    {
+        var config = ModConfiguration.Instance;
+        config.HudStatusDetail.Value = config.HudStatusDetail.Value == HudStatusDetail.Compact ? HudStatusDetail.Full : HudStatusDetail.Compact;
+        SaveAndRefresh("Smart status detail updated.");
+    }
 
     private void ResetDefaults()
     {
@@ -249,6 +282,9 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
         config.NativeMenuDistance.Value = DefaultDistance;
         config.NativeMenuHeightOffset.Value = DefaultHeightOffset;
         config.HudMinimapOpacity.Value = DefaultMinimapOpacity;
+        config.HudMinimapSize.Value = 12;
+        config.HudStatusScale.Value = .9f;
+        config.HudStatusDetail.Value = HudStatusDetail.Compact;
         config.ControllerMode.Value = ControllerUseMode.UiHotas;
         SaveAndRefresh("VR UI settings reset.");
     }
@@ -387,6 +423,9 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
         if (_distanceValueText != null) _distanceValueText.text = $"{config.NativeMenuDistance.Value:0.0} m";
         if (_heightValueText != null) _heightValueText.text = $"{config.NativeMenuHeightOffset.Value:+0.00;-0.00;0.00} m";
         if (_minimapOpacityValueText != null) _minimapOpacityValueText.text = $"{Mathf.RoundToInt(config.HudMinimapOpacity.Value * 100f)}%";
+        if (_minimapSizeText != null) _minimapSizeText.text = $"{HudPeripheralLayout.MinimapDegrees(config.HudMinimapSize.Value):0}°";
+        if (_statusScaleText != null) _statusScaleText.text = $"{HudPeripheralLayout.StatusScale(config.HudStatusScale.Value):0.00}";
+        if (_statusDetailText != null) _statusDetailText.text = "SMART DETAIL: " + config.HudStatusDetail.Value.ToString().ToUpperInvariant();
     }
 
     private void RefreshNativeUiToggle(bool enabled)

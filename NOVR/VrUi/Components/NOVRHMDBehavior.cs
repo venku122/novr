@@ -7,6 +7,7 @@ public class NOVRHMDBehavior : UIRenderedCanvasBehavior
 {
     private const float Offset = 1000;
     private Transform? _speed, _altitude, _bearing, _horizon;
+    private Vector3 _speedScale, _altitudeScale, _bearingScale;
 
     public override void Awake()
     {
@@ -17,6 +18,9 @@ public class NOVRHMDBehavior : UIRenderedCanvasBehavior
         _altitude = FindChildStartingWith(transform, "Altitude");
         _bearing = FindChildStartingWith(transform, "Bearing");
         _horizon = FindChildStartingWith(transform, "Artificial Horizon");
+        _speedScale = _speed != null ? _speed.localScale : Vector3.one;
+        _altitudeScale = _altitude != null ? _altitude.localScale : Vector3.one;
+        _bearingScale = _bearing != null ? _bearing.localScale : Vector3.one;
     }
     public override void OnEnable()
     {
@@ -59,11 +63,24 @@ public class NOVRHMDBehavior : UIRenderedCanvasBehavior
         }
         else
         {
-            PlaceNumber(_speed, reference, new Vector3(-150f, -45f, Offset));
-            PlaceNumber(_altitude, reference, new Vector3(150f, -45f, Offset));
-            PlaceNumber(_bearing, reference, new Vector3(0, -95f, Offset));
+            bool compact = HudPeripheralLayout.Compact(ModConfiguration.Instance.HudStatusMode.Value, ModConfiguration.Instance.HudStatusDetail.Value);
+            PlaceNumber(_speed, reference, compact ? HudPeripheralLayout.NumberOffset(0) : new Vector3(-150f, -45f, Offset));
+            PlaceNumber(_altitude, reference, compact ? HudPeripheralLayout.NumberOffset(1) : new Vector3(150f, -45f, Offset));
+            PlaceNumber(_bearing, reference, compact ? HudPeripheralLayout.NumberOffset(2) : new Vector3(0, -95f, Offset));
+            ApplyNumberScale(_speed, _speedScale, compact); ApplyNumberScale(_altitude, _altitudeScale, compact); ApplyNumberScale(_bearing, _bearingScale, compact);
         }
+        if (ModConfiguration.Instance.HudStatusMode.Value == HudStatusMode.Aircraft)
+        { ApplyNumberScale(_speed, _speedScale, false); ApplyNumberScale(_altitude, _altitudeScale, false); ApplyNumberScale(_bearing, _bearingScale, false); }
         if (_horizon != null) _horizon.localPosition = new Vector3(0, 150f, 0);
+    }
+    private static void ApplyNumberScale(Transform? number, Vector3 original, bool compact)
+    {
+        if (number == null) return;
+        if (!compact || number.parent == null) { number.localScale = original; return; }
+        var inherited = number.parent.lossyScale;
+        if (Mathf.Abs(inherited.x) < .00001f || Mathf.Abs(inherited.y) < .00001f || Mathf.Abs(inherited.z) < .00001f) return;
+        var scale = HudPeripheralLayout.StatusScale(ModConfiguration.Instance.HudStatusScale.Value);
+        number.localScale = new Vector3(original.x * scale / inherited.x, original.y * scale / inherited.y, original.z * scale / inherited.z);
     }
     private static void PlaceNumber(Transform? number, Transform reference, Vector3 offset)
     {
