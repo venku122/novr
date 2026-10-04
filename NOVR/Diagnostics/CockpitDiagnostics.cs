@@ -27,12 +27,14 @@ public static class CockpitDiagnostics
             seatForwardOffset = ModConfiguration.Instance.CockpitHeadForwardOffset.Value,
             seatRightOffset = ModConfiguration.Instance.CockpitHeadRightOffset.Value
         };
-        var head = InputDevices.GetDeviceAtXRNode(XRNode.Head);
-        if (!head.isValid) head = InputDevices.GetDeviceAtXRNode(XRNode.CenterEye);
-        snapshot.headPositionValid = head.TryGetFeatureValue(CommonUsages.devicePosition, out snapshot.rawHeadPosition);
-        snapshot.headRotationValid = head.TryGetFeatureValue(CommonUsages.deviceRotation, out snapshot.rawHeadRotation);
-        head.TryGetFeatureValue(CommonUsages.isTracked, out snapshot.headTracked);
-        var camera = Camera.main;
+        snapshot.rawHeadPosition = NOVRHeadsetData.RawHeadPosition;
+        snapshot.rawHeadRotation = NOVRHeadsetData.RawHeadRotation;
+        snapshot.headTracked = snapshot.headPositionValid = snapshot.headRotationValid = NOVRHeadsetData.HeadTracked;
+        snapshot.headPoseSource = NOVRHeadsetData.TrackingSource;
+        var manager = SceneSingleton<CameraStateManager>.i;
+        var camera = manager != null
+            ? NOVR.VrCamera.VrCameraManager.GetTrackedMainCamera(manager.gameObject) ?? manager.mainCamera
+            : Camera.main;
         if (camera != null)
         {
             snapshot.vrCamera = TransformSnapshot.Read(camera.transform);
@@ -40,7 +42,7 @@ public static class CockpitDiagnostics
             for (var parent = camera.transform.parent; parent != null && parents.Count < 8; parent = parent.parent)
                 parents.Add(TransformSnapshot.Read(parent));
             snapshot.cameraParents = parents.ToArray();
-            var manager = camera.GetComponentInParent<CameraStateManager>();
+            if (manager == null) manager = camera.GetComponentInParent<CameraStateManager>();
             if (manager != null)
             {
                 snapshot.gameCameraRoot = TransformSnapshot.Read(manager.transform);
@@ -81,7 +83,7 @@ public static class CockpitDiagnostics
 internal sealed class CockpitSnapshot
 {
     public int schemaVersion = 1, frame, calibrationSequence;
-    public string timestamp = "", aircraft = "", cameraMode = "", calibrationReason = "";
+    public string timestamp = "", aircraft = "", cameraMode = "", calibrationReason = "", headPoseSource = "";
     public bool headTracked, headPositionValid, headRotationValid;
     public Vector3 rawHeadPosition, calibratedHeadPosition, translationAnchor, translationCalibration, headInAircraft, headInSeat;
     public Quaternion rawHeadRotation, calibratedHeadRotation, rotationCalibration;

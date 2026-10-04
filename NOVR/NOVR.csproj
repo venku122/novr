@@ -16,6 +16,7 @@
         <RootNamespace>NOVR</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="System.Numerics" />
         <ProjectReference Include="..\NOVR.XR.OpenXR\NOVR.XR.OpenXR.csproj" Private="false"/>
         <ProjectReference Include="..\NOVR.SteamVR\NOVR.SteamVR.csproj" />
     </ItemGroup>

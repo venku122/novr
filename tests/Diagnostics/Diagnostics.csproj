@@ -14,5 +14,6 @@
     <Compile Include="../../NOVR/VrCamera/StereoCamera.cs" Link="StereoCamera.cs" />
     <Compile Include="../../NOVR/Diagnostics/DiagnosticJson.cs" Link="DiagnosticJson.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <Compile Include="../../NOVR/Input/SeatedHeadPose.cs" Link="SeatedHeadPose.cs" />
   </ItemGroup>
 </Project>

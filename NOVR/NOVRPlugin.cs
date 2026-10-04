@@ -33,7 +33,6 @@ public class NOVRPlugin : BaseUnityPlugin
     public NOVRPlugin()
     {
         
-        InputTracking.trackingAcquired += TrackingAcquired;
         _instance = this;
         ModFolderPath = Path.GetDirectoryName(Assembly.GetAssembly(typeof(NOVRPlugin)).Location);
 
@@ -45,13 +44,6 @@ public class NOVRPlugin : BaseUnityPlugin
         Core.Create();
     }
 
-    private void TrackingAcquired(XRNodeState obj)
-    {
-        // Controller acquisition must not redefine the seated head origin.
-        if (obj.nodeType != XRNode.Head && obj.nodeType != XRNode.CenterEye) return;
-        NOVRHeadsetData.CalibrateTranslation(reason: "head-tracking-acquired");
-    }
-     
     private void Awake()
     {
 

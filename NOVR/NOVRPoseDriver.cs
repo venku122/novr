@@ -27,6 +27,7 @@ public class NOVRPoseDriver: NOVRBehaviour
 
 
     
+    [BeforeRenderOrder(150)]
     protected override void OnBeforeRender()
     {
         base.OnBeforeRender();

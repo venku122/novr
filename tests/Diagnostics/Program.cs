@@ -126,3 +126,5 @@ Check(bothGrips.Update(true,true,"Auto",0,false,0,false,1,1).Hand == PointerHand
 CameraTrackingTests.Run();
 
 DiagnosticJsonTests.Run();
+
+SeatedHeadPoseTests.Run();

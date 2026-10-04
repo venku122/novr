@@ -26,3 +26,11 @@ Snapshots also accompany F10 input captures and optional playtest observations. 
 The source regression test fails on old camera initialization and passes on the candidate, using a substitute for Unity's native camera API. Nested serialization tests and the real Windows build pass. These are preparation evidence, not seated hardware acceptance.
 
 After seated behavior is accepted: validate optional Frame gaze availability and head-following helmet HUD, then finish the safe build/deploy/rollback and evidence capture loop. Eye tracking, HUD tracking and the original full development mission remain open.
+
+## Stable tracking reference candidate
+
+The preceding headset test still translated the cockpit during head rotation. Live evidence then showed calibration sequence 9490 with `head-tracking-acquired`, while Unity's `XRNode.Head` returned an untracked `(0, 1.6, 0)` placeholder and the actual Input System HMD remained tracked.
+
+The next candidate removes tracking-event recentering entirely. It reads a validated `XRHMD.centerEye` pose (actual tracked Unity XR HMD fallback), initializes its seat reference once, and freezes the last pose during tracking loss. Position and orientation share the calibrated yaw; seat offset is applied outside the tracking rotation. Explicit recenter and aircraft transition remain available. Before-render pose reading precedes camera application and controller drawing.
+
+Test in the cockpit: sit neutral, recenter once, slowly yaw left/right without leaning, return neutral, lean a little left/right, return neutral. Capture must show a stable calibration sequence during rotation; legitimate tracked HMD position changes still translate the view. Test another aircraft and one dashboard open/close. Do not infer a cockpit fix from menu-camera telemetry: capture requires an actual seat and game camera root.
