@@ -2,6 +2,19 @@
 
 NOVR is a reworked version of [UUVR](https://github.com/Raicuparta/uuvr) designed and optimized for Nuclear Option.
 
+## Steam Frame development fork
+
+This fork adds Steam Frame controller UI, controller models and hand switching,
+optional gamepad output alongside HOTAS, seated head tracking, and configurable
+helmet HUD layouts. See [Steam Frame support and builds](README.STEAM-FRAME.md)
+for installation, controls, limitations, Debug/Clean builds, and hardware test status.
+Eye tracking is experimental and has **not yet passed headset acceptance**.
+
+The upstream installer below installs upstream NOVR, not this fork's development
+builds. Use this fork's prerelease assets and guarded deployment scripts for these
+changes. Existing BepInEx 5.x is retained.
+
+
 ## User Installation
 
 ### Recommended: GUI installer
