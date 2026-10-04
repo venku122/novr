@@ -9,7 +9,7 @@ public class XrPluginOpenXrToggler : XrPluginToggler
 {
     protected override bool SetUp()
     {
-        if (ModConfiguration.Instance != null && ModConfiguration.Instance.EnableExperimentalSteamVrControllerProfiles.Value)
+        if (ModConfiguration.Instance != null && (ModConfiguration.Instance.EnableExperimentalSteamVrControllerProfiles.Value || ModConfiguration.Instance.EnableSteamFrameInput.Value || ModConfiguration.Instance.EnableEyeTracking.Value))
         {
             try
             {

@@ -33,6 +33,11 @@ internal sealed class InputDiagnosticSnapshot
     public string frameExtensionAvailable = "";
     public string frameExtensionEnabled = "";
     public float renderScale;
+    public bool gazeValid;
+    public string gazeStatus = "";
+    public Vector3 gazeTrackingPosition;
+    public Quaternion gazeTrackingRotation;
+    public string helmetHudTracking = "";
     public int eyeWidth;
     public int eyeHeight;
     public string[] novrBindings = Array.Empty<string>();
@@ -57,6 +62,8 @@ internal sealed class InputDiagnosticSnapshot
             eyeWidth = XRSettings.eyeTextureWidth, eyeHeight = XRSettings.eyeTextureHeight,
             novrBindings = VrControllerInput.GetDiagnosticBindings()
         };
+        snapshot.gazeValid = NOVR.Controllers.EyeGazeInput.TryGetTrackingPose(out snapshot.gazeTrackingPosition, out snapshot.gazeTrackingRotation, out snapshot.gazeStatus);
+        snapshot.helmetHudTracking = ModConfiguration.Instance.HelmetHudTracking.Value;
         var xr = new List<XrDevice>();
         InputDevices.GetDevices(xr);
         var xrSnapshots = new List<DeviceSnapshot>();

@@ -1,5 +1,6 @@
 using System;
 using NOVR.Diagnostics;
+using NOVR.Controllers;
 
 static void Check(bool condition, string message)
 {
@@ -39,3 +40,33 @@ Check(gesture.Update(true, 39) == CaptureTransition.Start, "new press after time
 Check(gesture.Cancel() == CaptureTransition.Stop, "component disable stops active capture");
 Check(gesture.Cancel() == CaptureTransition.None, "disable does not repeat stop");
 Console.WriteLine("PASS: capture press/release, startup privacy, bounded hold and lifecycle cancellation");
+
+var pointer = new ControllerUiState();
+var state = pointer.Update(true, true, "Auto", .0f, false, .0f, false);
+Check(state.Hand == PointerHand.Right && !state.Pressed, "auto starts with right hand");
+state = pointer.Update(true, true, "Auto", .6f, false, .0f, false);
+Check(state.Down && state.Pressed, "trigger down is a single edge");
+state = pointer.Update(true, true, "Auto", .50f, false, 1f, false);
+Check(state.Hand == PointerHand.Right && state.Pressed && !state.Down, "hysteresis and other hand cannot steal drag");
+state = pointer.Update(true, true, "Auto", .4f, false, 1f, false);
+Check(state.Up && !state.Pressed, "trigger release edge");
+state = pointer.Update(false, true, "Auto", 0f, false, 1f, false);
+Check(state.Hand == PointerHand.Left && !state.Pressed, "hand switch requires releasing held select");
+pointer.Update(false, true, "Auto", 0f, false, 0f, false);
+state = pointer.Update(false, true, "Auto", 0f, false, 0f, true);
+Check(state.Down && state.Hand == PointerHand.Left, "single controller confirm works");
+state = pointer.Update(false, false, "Auto", 0f, false, 0f, false);
+Check(state.Up && state.Hand == PointerHand.None, "disconnect cancels held selection");
+Check(ControllerUiState.ChooseHand(true,true,"Left",PointerHand.None,false)==PointerHand.Left,"left preference");
+Check(ControllerUiState.ChooseHand(true,false,"Left",PointerHand.None,false)==PointerHand.Right,"one hand fallback");
+Console.WriteLine("PASS: controller hand selection, debounce, hysteresis, drag ownership, disconnect and reconnect hold safety");
+
+var pressGate = new PointerPressGate();
+Check(pressGate.Read(true), "fresh press allowed");
+pressGate.Cancel(true);
+Check(!pressGate.Read(true), "off-canvas return cannot re-press while held");
+pressGate.Cancel(false);
+Check(!pressGate.Read(true), "repeated focus cancellation cannot unblock a held press");
+Check(!pressGate.Read(false), "release emits no press");
+Check(pressGate.Read(true), "new physical press allowed after release");
+Console.WriteLine("PASS: pointer cancellation requires physical release before re-entry");

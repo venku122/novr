@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR;
+using NOVR.Controllers;
+using UnityEngine.InputSystem.Controls;
+using PoseControl = UnityEngine.XR.OpenXR.Input.PoseControl;
 
 namespace NOVR.VrUi
 {
@@ -21,6 +24,15 @@ namespace NOVR.VrUi
         private static InputAction? _headPos;
         private static InputAction? _headRot;
         private static bool _actionsInitialized;
+        private static InputAction? _rightConfirm, _leftConfirm, _rightBack, _leftBack, _rightScroll, _leftScroll, _rightMenu, _leftMenu;
+        private static readonly ControllerUiState UiState = new();
+        private static ControllerUiFrame _uiFrame;
+        private static bool _rightBackWasHeld, _leftBackWasHeld;
+        private static bool _menuWasHeld;
+        public static bool MenuDown { get; private set; }
+        public static bool BackDown { get; private set; }
+        public static ControllerUiFrame UiFrame { get { EnsureFrame(); return _uiFrame; } }
+        public static Vector2 UiScroll { get { EnsureFrame(); var action = _uiFrame.Hand == PointerHand.Left ? _leftScroll : _rightScroll; return _uiFrame.Hand == PointerHand.None || action == null ? Vector2.zero : action.ReadValue<Vector2>(); } }
 
         // Read only: do not initialize actions or alter their bindings for diagnostics.
         internal static string[] GetDiagnosticBindings()
@@ -31,6 +43,10 @@ namespace NOVR.VrUi
                 ("rightAimPosition", _rightAimPos), ("rightAimRotation", _rightAimRot),
                 ("leftAimPosition", _leftAimPos), ("leftAimRotation", _leftAimRot),
                 ("rightTrigger", _rightTrigger), ("leftTrigger", _leftTrigger),
+                ("rightConfirm", _rightConfirm), ("leftConfirm", _leftConfirm),
+                ("rightBack", _rightBack), ("leftBack", _leftBack),
+                ("rightScroll", _rightScroll), ("leftScroll", _leftScroll),
+                ("rightMenu", _rightMenu), ("leftMenu", _leftMenu),
                 ("headPosition", _headPos), ("headRotation", _headRot)
             };
             foreach (var item in actions)
@@ -40,6 +56,7 @@ namespace NOVR.VrUi
                 foreach (var binding in item.Action.bindings) result.Add(item.Name + " binding=" + binding.effectivePath);
                 foreach (var control in item.Action.controls) result.Add(item.Name + " resolved=" + control.path);
             }
+            result.Add($"UI pointer hand={_uiFrame.Hand}; pressed={_uiFrame.Pressed}; configuredHand={ModConfiguration.Instance.PointerHand.Value}");
             return result.ToArray();
         }
 
@@ -93,6 +110,16 @@ namespace NOVR.VrUi
             _headValid = TryReadRawPose(_headPos, _headRot, out _rawHeadPos, out _rawHeadRot);
             _rawRightTrigger = TryReadFloat(_rightTrigger);
             _rawLeftTrigger = TryReadFloat(_leftTrigger);
+            _uiFrame = UiState.Update(_rightValid, _leftValid, ModConfiguration.Instance.PointerHand.Value,
+                _rawRightTrigger, TryReadFloat(_rightConfirm) > .5f, _rawLeftTrigger, TryReadFloat(_leftConfirm) > .5f);
+            var rightBack = _rightValid && TryReadFloat(_rightBack) > .5f;
+            var leftBack = _leftValid && TryReadFloat(_leftBack) > .5f;
+            BackDown = _uiFrame.Hand == PointerHand.Right ? rightBack && !_rightBackWasHeld : _uiFrame.Hand == PointerHand.Left && leftBack && !_leftBackWasHeld;
+            var menuHeld = (_rightValid && TryReadFloat(_rightMenu) > .5f) || (_leftValid && TryReadFloat(_leftMenu) > .5f);
+            MenuDown = menuHeld && !_menuWasHeld; _menuWasHeld = menuHeld;
+            _rightBackWasHeld = rightBack; _leftBackWasHeld = leftBack;
+            if (!_rightValid) _rightRotFilter = null;
+            if (!_leftValid) _leftRotFilter = null;
 
             // Initialize filters on first valid data
             if (!_filtInitialized)
@@ -180,18 +207,16 @@ namespace NOVR.VrUi
             pos = Vector3.zero;
             rot = Quaternion.identity;
             if (posAction == null || rotAction == null) return false;
-            try
+            // Tracking flags determine validity, including a legitimate zero position.
+            foreach (var control in posAction.controls)
             {
-                Vector3 p = posAction.ReadValue<Vector3>();
-                Quaternion r = rotAction.ReadValue<Quaternion>();
-                if (p.sqrMagnitude > 0.0001f || Quaternion.Angle(r, Quaternion.identity) > 0.1f)
-                {
-                    pos = p;
-                    rot = r;
-                    return true;
-                }
+                if (!(control.device is TrackedDevice device) || device.isTracked.ReadValue() < .5f) continue;
+                var aim = device.TryGetChildControl<PoseControl>("pointer");
+                if (aim != null && aim.isTracked.ReadValue() > .5f && (aim.trackingState.ReadValue() & 3) == 3)
+                { pos = aim.position.ReadValue(); rot = aim.rotation.ReadValue(); return true; }
+                if ((device.trackingState.ReadValue() & 3) != 3) continue;
+                pos = device.devicePosition.ReadValue(); rot = device.deviceRotation.ReadValue(); return true;
             }
-            catch { }
             return false;
         }
 
@@ -238,6 +263,18 @@ namespace NOVR.VrUi
             _headRot = new InputAction(binding: "<XRHMD>/centerEyeRotation");
             _headRot.AddBinding("<XRHMD>/deviceRotation");
 
+            _rightConfirm = CreateUiAction("UI_SELECT_RIGHT", "RightHand", "primaryButton", "faceButtonBottom");
+            _leftConfirm = CreateUiAction("UI_SELECT_LEFT", "LeftHand", "primaryButton", "faceButtonBottom");
+            _rightBack = CreateUiAction("UI_BACK_RIGHT", "RightHand", "secondaryButton", "faceButtonOutside");
+            _leftBack = CreateUiAction("UI_BACK_LEFT", "LeftHand", "secondaryButton", "faceButtonOutside");
+            _rightMenu = CreateUiAction("VR_MENU_RIGHT", "RightHand", "menuButton", "menuButton");
+            _leftMenu = CreateUiAction("VR_MENU_LEFT", "LeftHand", "menuButton", "viewButton");
+            _rightScroll = new InputAction("UI_SCROLL_RIGHT", InputActionType.Value, "<XRController>{RightHand}/thumbstick", expectedControlType: "Vector2");
+            _leftScroll = new InputAction("UI_SCROLL_LEFT", InputActionType.Value, "<XRController>{LeftHand}/thumbstick", expectedControlType: "Vector2");
+            _rightScroll.AddBinding("<XRController>{RightHand}/primary2DAxis");
+            _leftScroll.AddBinding("<XRController>{LeftHand}/primary2DAxis");
+            _rightScroll.Enable(); _leftScroll.Enable();
+
             _rightAimPos.Enable();
             _rightAimRot.Enable();
             _leftAimPos.Enable();
@@ -248,6 +285,14 @@ namespace NOVR.VrUi
             _headRot.Enable();
 
             InputSystem.onDeviceChange += OnDeviceChange;
+        }
+
+        private static InputAction CreateUiAction(string semantic, string hand, string compatibility, string frame)
+        {
+            var action = new InputAction(semantic, InputActionType.Button, $"<XRController>{{{hand}}}/{compatibility}");
+            action.AddBinding($"<SteamFrameController>{{{hand}}}/{frame}");
+            action.Enable();
+            return action;
         }
 
         private static void OnDeviceChange(UnityEngine.InputSystem.InputDevice device, InputDeviceChange change)
@@ -324,8 +369,11 @@ namespace NOVR.VrUi
                 // in game rather than at eye-level + 0.8.
                 // Rotation: controller's own tracking orientation — not multiplied by
                 // headset rotation, so the ray direction does not follow the HMD / aircraft.
-                worldPosition = NOVRHeadsetData.Translation + (trackingPos - _rawHeadPos);
-                worldRotation = trackingRot;
+                var camera = APIBus.CockpitHudCamera;
+                if (camera == null || !_headValid) { worldPosition = Vector3.zero; worldRotation = Quaternion.identity; return false; }
+                var trackingToUi = camera.transform.rotation * Quaternion.Inverse(_rawHeadRot);
+                worldPosition = camera.transform.position + trackingToUi * (trackingPos - _rawHeadPos);
+                worldRotation = trackingToUi * trackingRot;
                 return true;
             }
 
@@ -451,54 +499,10 @@ namespace NOVR.VrUi
                 ? APIBus.CockpitHudCamera.transform.position
                 : Vector3.zero;
 
-            bool leftValid = TryGetPoseInWorldSpace(XRNode.LeftHand, camWorldPos, out var leftPos, out var leftRot);
-            bool rightValid = TryGetPoseInWorldSpace(XRNode.RightHand, camWorldPos, out var rightPos, out var rightRot);
-
-            if (leftValid && !rightValid)
-            {
-                position = leftPos;
-                rotation = leftRot;
-                triggerPressed = _rawLeftTrigger > 0.5f;
-                return true;
-            }
-            if (rightValid && !leftValid)
-            {
-                position = rightPos;
-                rotation = rightRot;
-                triggerPressed = _rawRightTrigger > 0.5f;
-                return true;
-            }
-
-            if (!leftValid && !rightValid)
-            {
-                position = Vector3.zero;
-                rotation = Quaternion.identity;
-                triggerPressed = false;
-                return false;
-            }
-
-            bool rightTrigger = _rawRightTrigger > 0.5f;
-            bool leftTrigger = _rawLeftTrigger > 0.5f;
-
-            if (rightTrigger)
-            {
-                position = rightPos;
-                rotation = rightRot;
-                triggerPressed = true;
-                return true;
-            }
-            if (leftTrigger)
-            {
-                position = leftPos;
-                rotation = leftRot;
-                triggerPressed = true;
-                return true;
-            }
-
-            position = rightPos;
-            rotation = rightRot;
-            triggerPressed = false;
-            return true;
+            position = Vector3.zero; rotation = Quaternion.identity;
+            var hand = _uiFrame.Hand == PointerHand.Left ? XRNode.LeftHand : XRNode.RightHand;
+            triggerPressed = _uiFrame.Pressed;
+            return _uiFrame.Hand != PointerHand.None && TryGetPoseInWorldSpace(hand, camWorldPos, out position, out rotation);
         }
     }
 }

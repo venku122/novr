@@ -30,6 +30,15 @@ internal static class OpenXrControllerProfileBootstrap
 
     public static int ConfigureSteamVrControllerProfiles()
     {
+        var profiles = new List<ProfileSpec>();
+        if (ModConfiguration.Instance.EnableExperimentalSteamVrControllerProfiles.Value) profiles.AddRange(SteamVrControllerProfiles);
+        if (ModConfiguration.Instance.EnableSteamFrameInput.Value)
+        {
+            profiles.Add(new ProfileSpec("Valve.OpenXR.Utils.SteamFrameControllerProfile, NOVR", "Steam Frame Controller Profile", "XR_VALVE_frame_controller_interaction"));
+            profiles.Add(new ProfileSpec("UnityEngine.XR.OpenXR.Features.Interactions.OculusTouchControllerProfile, Unity.XR.OpenXR", "Oculus Touch Compatibility Profile"));
+        }
+        if (ModConfiguration.Instance.EnableEyeTracking.Value)
+            profiles.Add(new ProfileSpec("UnityEngine.XR.OpenXR.Features.Interactions.EyeGazeInteraction, Unity.XR.OpenXR", "Eye Gaze Interaction Profile", "XR_EXT_eye_gaze_interaction"));
         RegisterOpenXrInputSystemSupportLayouts();
 
         var settings = OpenXRSettings.Instance;
@@ -48,7 +57,7 @@ internal static class OpenXrControllerProfileBootstrap
         var features = ReadFeatures(settings);
         var configuredCount = 0;
 
-        foreach (var profile in SteamVrControllerProfiles)
+        foreach (var profile in profiles)
         {
             if (EnsureProfileFeature(features, profile))
             {
@@ -128,7 +137,7 @@ internal static class OpenXrControllerProfileBootstrap
         SetFeatureField(feature, "version", "0.0.1");
         SetFeatureField(feature, "company", "Unity");
         SetFeatureField(feature, "featureIdInternal", ReadFeatureId(feature.GetType()));
-        SetFeatureField(feature, "openxrExtensionStrings", "");
+        SetFeatureField(feature, "openxrExtensionStrings", profile.Extensions);
         SetFeatureField(feature, "targetOpenXRApiVersion", "");
         SetFeatureField(feature, "required", false);
         SetFeatureField(feature, "priority", 0);
@@ -169,11 +178,13 @@ internal static class OpenXrControllerProfileBootstrap
     {
         public readonly string TypeName;
         public readonly string UiName;
+        public readonly string Extensions;
 
-        public ProfileSpec(string typeName, string uiName)
+        public ProfileSpec(string typeName, string uiName, string extensions = "")
         {
             TypeName = typeName;
             UiName = uiName;
+            Extensions = extensions;
         }
     }
 }

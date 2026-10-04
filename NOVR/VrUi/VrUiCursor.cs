@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Reflection;
+using NuclearOption.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -30,8 +32,11 @@ public class VrUiCursor: NOVRBehaviour
             NOVRPlugin.LogSource.LogMessage($"[VrUiCursor] Awake id={_instanceId} name={name} parent={(transform.parent != null ? transform.parent.name : "<none>")}");
     }
 
+    private void OnDisable() => CancelPointer();
+
     private void OnDestroy()
     {
+        CancelPointer();
         if (Instance == this)
         {
             Instance = null;
@@ -113,6 +118,11 @@ public class VrUiCursor: NOVRBehaviour
     private GameObject? _hovered;
     private GameObject? _pointerPress;
     private bool _wasLeftDown;
+    private readonly NOVR.Controllers.PointerPressGate _pressGate = new();
+    private static readonly FieldInfo? LeaderboardMenuField = typeof(GameplayUI).GetField("leaderboardMenu", BindingFlags.NonPublic | BindingFlags.Instance);
+    private GameObject? _pointerDrag;
+    private NOVR.Controllers.PointerHand _pointerSourceHand;
+    private readonly List<RaycastResult> _uiRaycastResults = new();
 
     // Standard UI input module references — disabled normally, re-enabled when the
     // original game's control mapper (non-VR screen) is open so mouse clicks work.
@@ -194,6 +204,7 @@ public class VrUiCursor: NOVRBehaviour
     {
         if (!Application.isFocused)
         {
+            CancelPointer();
             if (_cursor != null && _cursor.activeSelf)
                 _cursor.SetActive(false);
             return;
@@ -254,12 +265,12 @@ public class VrUiCursor: NOVRBehaviour
         if (useController && controllerAvailable)
         {
             _controllerModeActive = true;
-            _triggerWasPressed = _triggerIsPressed && !_triggerWasPressed;
+            var hand = VrControllerInput.UiFrame.Hand;
+            if (_pointerSourceHand != hand) CancelPointer();
+            _pointerSourceHand = hand;
 
             // Use trigger was-pressed tracking for animation
-            bool triggerDownThisFrame = VrControllerInput.GetTriggerWasPressedThisFrame(
-                XRNode.RightHand) || VrControllerInput.GetTriggerWasPressedThisFrame(
-                XRNode.LeftHand);
+            bool triggerDownThisFrame = VrControllerInput.UiFrame.Down;
 
             UpdateCursorAnglesFromController();
 
@@ -280,7 +291,19 @@ public class VrUiCursor: NOVRBehaviour
                 }
 
                 FirePointerEvents(screenPoint, _triggerIsPressed);
+                var ped = _pointerEventData;
+                if (ped != null && _hovered != null)
+                {
+                    var scroll = VrControllerInput.UiScroll;
+                    if (Mathf.Abs(scroll.y) > .2f)
+                    {
+                        ped.scrollDelta = new Vector2(0, scroll.y * Mathf.Max(0, ModConfiguration.Instance.ControllerScrollSpeed.Value) * Time.unscaledDeltaTime);
+                        ExecuteEvents.ExecuteHierarchy(_hovered, ped, ExecuteEvents.scrollHandler);
+                    }
+                }
             }
+            else CancelPointer();
+            RouteControllerNavigation();
 
             UpdateCursorAnimation(triggerDownThisFrame, _triggerIsPressed);
 
@@ -293,9 +316,12 @@ public class VrUiCursor: NOVRBehaviour
         }
         else
         {
+            if (_controllerModeActive) CancelPointer();
             _controllerModeActive = false;
+            _pointerSourceHand = NOVR.Controllers.PointerHand.None;
             if (!IsRealCursorVisible())
             {
+                CancelPointer();
                 if (_cursor != null)
                     _cursor.SetActive(false);
                 return;
@@ -323,6 +349,7 @@ public class VrUiCursor: NOVRBehaviour
                 FirePointerEvents(screenPoint, realMouse.leftButton.isPressed);
             }
 
+            if (_isOffscreen) CancelPointer();
             UpdateCursorAnimation(realMouse.leftButton.wasPressedThisFrame, realMouse.leftButton.isPressed);
 
             if (realMouse.leftButton.wasPressedThisFrame)
@@ -341,9 +368,7 @@ public class VrUiCursor: NOVRBehaviour
             return;
         }
 
-        bool triggerPressedThisFrame =
-            VrControllerInput.GetTriggerWasPressedThisFrame(XRNode.RightHand) ||
-            VrControllerInput.GetTriggerWasPressedThisFrame(XRNode.LeftHand);
+        bool triggerPressedThisFrame = VrControllerInput.UiFrame.Down;
         if (triggerPressedThisFrame && _runtimeMode != RuntimeInputMode.Controller)
         {
             _runtimeMode = RuntimeInputMode.Controller;
@@ -367,12 +392,15 @@ public class VrUiCursor: NOVRBehaviour
             _pointerEventData = ped;
         }
 
+        ped.delta = screenPoint - ped.position;
         ped.position = screenPoint;
-        ped.delta = Vector2.zero;
+        ped.pointerId = -901;
         ped.button = PointerEventData.InputButton.Left;
 
-        var results = new List<RaycastResult>();
+        var results = _uiRaycastResults;
+        results.Clear();
         raycaster.Raycast(ped, results);
+        ped.pointerCurrentRaycast = default;
 
         // Get the event root (the ancestor that has Selectable or IPointerClickHandler)
         GameObject? current = null;
@@ -406,48 +434,93 @@ public class VrUiCursor: NOVRBehaviour
                 _cursorOverInteractive = true;
         }
 
-        // Click handling
-        if (isLeftDown)
+        isLeftDown = _pressGate.Read(isLeftDown);
+        if (isLeftDown && !_wasLeftDown)
         {
-            if (!_wasLeftDown)
-            {
-                _pointerPress = current;
-                ped.pressPosition = screenPoint;
-                ped.pointerPress = current;
-                ped.clickTime = Time.unscaledTime;
-                ped.clickCount = 1;
-                if (current != null)
-                {
-                    ExecuteEvents.ExecuteHierarchy(current, ped, ExecuteEvents.pointerDownHandler);
-                }
-            }
-            else
-            {
-                if (_pointerPress != null && _pointerPress == current)
-                {
-                    ExecuteEvents.ExecuteHierarchy(_pointerPress, ped, ExecuteEvents.dragHandler);
-                }
-            }
+            ped.pressPosition = screenPoint;
+            ped.pointerPressRaycast = ped.pointerCurrentRaycast;
+            ped.eligibleForClick = true;
+            ped.dragging = false;
+            // Initialization handlers may disable this for sliders; never carry that into the next press.
+            ped.useDragThreshold = true;
+            ped.clickCount = 1;
+            ped.clickTime = Time.unscaledTime;
+            _pointerPress = current == null ? null : ExecuteEvents.ExecuteHierarchy(current, ped, ExecuteEvents.pointerDownHandler);
+            _pointerPress ??= ExecuteEvents.GetEventHandler<IPointerClickHandler>(current);
+            ped.pointerPress = _pointerPress;
+            _pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(current);
+            ped.pointerDrag = _pointerDrag;
+            if (_pointerDrag != null) ExecuteEvents.Execute(_pointerDrag, ped, ExecuteEvents.initializePotentialDrag);
+            if (_pointerPress != null) es.SetSelectedGameObject(_pointerPress, ped);
         }
-        else if (_wasLeftDown)
+        else if (isLeftDown && _pointerDrag != null)
         {
-            if (_pointerPress != null)
+            if (!ped.dragging && (!ped.useDragThreshold || (screenPoint - ped.pressPosition).sqrMagnitude >= es.pixelDragThreshold * es.pixelDragThreshold))
             {
-                ExecuteEvents.ExecuteHierarchy(_pointerPress, ped, ExecuteEvents.pointerUpHandler);
-                if (_pointerPress == current)
+                ped.dragging = true;
+                ped.eligibleForClick = false;
+                ExecuteEvents.Execute(_pointerDrag, ped, ExecuteEvents.beginDragHandler);
+                if (_pointerPress != null && _pointerPress != _pointerDrag)
                 {
-                    ExecuteEvents.ExecuteHierarchy(_pointerPress, ped, ExecuteEvents.pointerClickHandler);
-                    ped.clickCount++;
-                }
-                else
-                {
-                    ExecuteEvents.ExecuteHierarchy(_pointerPress, ped, ExecuteEvents.initializePotentialDrag);
+                    ExecuteEvents.Execute(_pointerPress, ped, ExecuteEvents.pointerUpHandler);
+                    _pointerPress = null; ped.pointerPress = null;
                 }
             }
-            _pointerPress = null;
+            if (ped.dragging) ExecuteEvents.Execute(_pointerDrag, ped, ExecuteEvents.dragHandler);
         }
-
+        else if (!isLeftDown && _wasLeftDown)
+        {
+            if (_pointerPress != null) ExecuteEvents.Execute(_pointerPress, ped, ExecuteEvents.pointerUpHandler);
+            if (ped.eligibleForClick && _pointerPress != null && _pointerPress == ExecuteEvents.GetEventHandler<IPointerClickHandler>(current))
+                ExecuteEvents.Execute(_pointerPress, ped, ExecuteEvents.pointerClickHandler);
+            if (ped.dragging && _pointerDrag != null)
+            {
+                if (current != null) ExecuteEvents.ExecuteHierarchy(current, ped, ExecuteEvents.dropHandler);
+                ExecuteEvents.Execute(_pointerDrag, ped, ExecuteEvents.endDragHandler);
+            }
+            _pointerPress = null; _pointerDrag = null;
+            ped.pointerPress = null; ped.pointerDrag = null; ped.dragging = false; ped.eligibleForClick = false;
+        }
         _wasLeftDown = isLeftDown;
+    }
+
+    private void RouteControllerNavigation()
+    {
+        var es = EventSystem.current;
+        if (VrControllerInput.BackDown && es != null)
+        {
+            var target = es.currentSelectedGameObject ?? _hovered;
+            var handled = target != null && ExecuteEvents.ExecuteHierarchy(target, new BaseEventData(es), ExecuteEvents.cancelHandler) != null;
+            if (!handled)
+            {
+                var gameplay = SceneSingleton<GameplayUI>.i;
+                if (gameplay != null && GameplayUI.GameIsPaused && LeaderboardMenuField?.GetValue(gameplay) is LeaderboardMenu menu && !menu.SettingsMenuOpen) menu.Close();
+            }
+        }
+        if (VrControllerInput.MenuDown)
+        {
+            var gameplay = SceneSingleton<GameplayUI>.i;
+            if (gameplay == null) return;
+            if (GameplayUI.GameIsPaused)
+            {
+                if (LeaderboardMenuField?.GetValue(gameplay) is LeaderboardMenu menu && !menu.SettingsMenuOpen) menu.Close();
+            }
+            else if (GameplayUI.AllowPauseKeybind && (GameManager.gameState == GameState.SinglePlayer || GameManager.gameState == GameState.Multiplayer)) gameplay.PauseGame();
+        }
+    }
+
+    private void CancelPointer()
+    {
+        _pressGate.Cancel(_wasLeftDown);
+        var ped = _pointerEventData;
+        if (ped != null)
+        {
+            if (_pointerPress != null) ExecuteEvents.Execute(_pointerPress, ped, ExecuteEvents.pointerUpHandler);
+            if (ped.dragging && _pointerDrag != null) ExecuteEvents.Execute(_pointerDrag, ped, ExecuteEvents.endDragHandler);
+            if (_hovered != null) ExecuteEvents.ExecuteHierarchy(_hovered, ped, ExecuteEvents.pointerExitHandler);
+            ped.pointerPress = null; ped.pointerDrag = null; ped.dragging = false; ped.eligibleForClick = false;
+        }
+        _pointerPress = null; _pointerDrag = null; _hovered = null; _wasLeftDown = false;
     }
 
     private static GameObject? GetEventRoot(GameObject? obj)

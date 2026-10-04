@@ -28,6 +28,7 @@ internal static class XrStartupDiagnostics
     private static readonly string[] InterestingExtensions =
     {
         "XR_VALVE_frame_controller_interaction",
+        "XR_EXT_eye_gaze_interaction",
         "XR_KHR_binding_modification",
         "XR_EXT_dpad_binding",
         "XR_EXT_hand_tracking",

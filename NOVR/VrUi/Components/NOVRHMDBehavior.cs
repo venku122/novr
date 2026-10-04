@@ -8,11 +8,12 @@ public class NOVRHMDBehavior : UIRenderedCanvasBehavior
     
     private float _offset = 1000;
 
-    private void Update()
+    private void LateUpdate()
     {
-        var uiCam = APIBus.CockpitHudReference;
-        transform.position = uiCam.transform.forward * _offset;
-        transform.rotation = uiCam.transform.rotation;
+        var reference = ModConfiguration.Instance.HelmetHudTracking.Value == "Head"
+            ? APIBus.CockpitHudCamera.transform : APIBus.CockpitHudReference.transform;
+        transform.position = reference.position + reference.forward * _offset;
+        transform.rotation = reference.rotation;
         
         SetLocalPosition("Speed", new Vector3(-110f, 150f, 0f)); // TODO: Patch game files and use events to set these gameobjects
         SetLocalPosition("Altitude", new Vector3(110f, 150f, 0f));

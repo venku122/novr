@@ -21,6 +21,12 @@ public class ModConfiguration
     public readonly ConfigEntry<float> MaximumZoom;
     public readonly ConfigEntry<bool> InstantZoomOut;
     public readonly ConfigEntry<string> CursorInputMode;
+    public readonly ConfigEntry<bool> EnableSteamFrameInput;
+    public readonly ConfigEntry<string> PointerHand;
+    public readonly ConfigEntry<float> ControllerScrollSpeed;
+    public readonly ConfigEntry<bool> EnableEyeTracking;
+    public readonly ConfigEntry<bool> ShowGazeReticle;
+    public readonly ConfigEntry<string> HelmetHudTracking;
     public readonly ConfigEntry<bool> EnableNativeMenuEnvironment;
     public readonly ConfigEntry<bool> EnableExperimentalSteamVrControllerProfiles;
     public readonly ConfigEntry<bool> LogXrStartupDiagnostics;
@@ -107,6 +113,14 @@ public class ModConfiguration
             "Enable Native Menu Environment",
             false,
             "Show an experimental 3D native menu environment using real game preview assets.");
+
+        EnableSteamFrameInput = config.Bind("VR Input", "Enable Steam Frame Input", false,
+            "Enable Valve native Frame and Oculus Touch compatibility OpenXR profiles before XR initialization. Restart required. UI actions only; HOTAS flight input is unchanged. Hardware validation pending.");
+        PointerHand = config.Bind("VR Input", "Pointer Hand", "Auto", "Auto, Right or Left preference; a single available controller is usable. Selection holds its hand until release.");
+        ControllerScrollSpeed = config.Bind("VR Input", "Scroll Speed", 8f, "UI scroll units per second from the pointer hand thumbstick; no flight-axis mapping.");
+        EnableEyeTracking = config.Bind("VR Input", "Enable Eye Tracking", false, "Opt in to XR_EXT_eye_gaze_interaction. Exposes tracked gaze snapshots when runtime/privacy settings allow. Does not aim weapons, click, or change graphics.");
+        ShowGazeReticle = config.Bind("VR Input", "Show Gaze Reticle", false, "Show a small noninteractive gaze ring on VR UI when tracked gaze is available. No automatic hover, click or targeting. Requires Eye Tracking enabled; restart after enabling.");
+        HelmetHudTracking = config.Bind("VR Input", "Helmet HUD Tracking", "Smoothed", "Smoothed preserves the existing helmet HUD; Head follows the current head camera without smoothing. Aircraft HUD stays aircraft-fixed.");
 
         EnableExperimentalSteamVrControllerProfiles = config.Bind(
             "Experimental",
