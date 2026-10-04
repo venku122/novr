@@ -39,6 +39,9 @@ static class PlacementTests
         placement.Restore(); childLayout.Restore();
         Check(countermeasure.localPosition.Equals(new Vector3(-750,-55,0)),"aircraft-only child spacing restored exactly");
         var notice=new Transform { localPosition=new Vector3(20,30,0),localScale=new Vector3(1,1,1),localRotation=new Quaternion(0,0,0,1) };
+        Check(HudNotificationLayout.Offset(true,new Vector3(0,0,3),new Vector3(0,0,0)).Equals(new Vector3(0,0,3)),"message plane independent of parent first Update order");
+        Check(HudNotificationLayout.Offset(true,new Vector3(0,0,3),new Vector3(0,0,3)).Equals(new Vector3(0,0,3)),"message plane stable after parent Update");
+        Check(HudNotificationLayout.Offset(false,new Vector3(.2f,.1f,3),new Vector3(0,0,3)).Equals(new Vector3(.2f,.1f,3)),"rank prefab retains native canvas-relative offset");
         notice.SetParent(aircraft,false); notice.gameObject.activeSelf=false;
         var originalNoticePosition=notice.localPosition;
         var following=new HudHeadFollowingPlacement(notice,new Vector3(1,2,3));

@@ -10,7 +10,8 @@ public sealed class NOVRNotificationBehavior : UIRenderedCanvasBehavior
     private HudHeadFollowingPlacement? _placement;
     private void Start()
     {
-        if (GetComponent<MessageUI>() != null)
+        bool isMessageRoot = GetComponent<MessageUI>() != null;
+        if (isMessageRoot)
         {
             // Retain the existing NOVR MessageUI plane/scale as the baseline.
             transform.localScale = new Vector3(.003f, .003f, .003f);
@@ -18,8 +19,7 @@ public sealed class NOVRNotificationBehavior : UIRenderedCanvasBehavior
         }
         var canvas = GetComponentInParent<Canvas>();
         var origin = canvas != null && canvas.transform != transform ? canvas.transform.position : new Vector3(0, 0, 3);
-        var offset = transform.position - origin;
-        _placement = new HudHeadFollowingPlacement(transform, new Vector3(offset.x, offset.y, 3 + offset.z));
+        _placement = new HudHeadFollowingPlacement(transform, HudNotificationLayout.Offset(isMessageRoot, transform.position, origin));
         UpdatePose();
     }
     public override void OnEnable() { base.OnEnable(); Application.onBeforeRender += BeforeRender; }

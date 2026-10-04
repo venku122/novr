@@ -2,6 +2,16 @@ using UnityEngine;
 
 namespace NOVR.VrUi.SpecialBehavior;
 
+internal static class HudNotificationLayout
+{
+    public static Vector3 Offset(bool messageRoot, Vector3 worldPosition, Vector3 canvasOrigin)
+    {
+        if (messageRoot) return new Vector3(0, 0, 3);
+        var relative = worldPosition - canvasOrigin;
+        return new Vector3(relative.x, relative.y, 3 + relative.z);
+    }
+}
+
 // Keep the native canvas parent and visibility. Only pose changes; no event,
 // notification timer, alpha, or text mutation belongs to this placement helper.
 internal sealed class HudHeadFollowingPlacement
