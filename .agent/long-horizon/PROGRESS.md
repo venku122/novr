@@ -5,3 +5,5 @@
 2026-10-04 UTC: independent external M5/M7 preparation committed. Bounded local voice recording/transcription, fresh telemetry/log/complete-PNG association, durable sessions and prepared-only Codex jobs implemented; optional capture-only legacy shortcut defaults off/None. Fifteen Linux tests plus all sixteen Windows tests pass; synthetic Windows roundtrip produces a camera observation. Nine review findings repaired and regression-tested. C# gesture/build/deploy/launch gates pass. Final stage dc5af227d69b4941b42b80dbf43455e6 from 7d44cf52; live install unchanged. Hardware and full transform telemetry/UI/controller/Codex execution acceptance remain open.
 
 2026-10-04T00:47:11.825700+00:00 Controller-first steering: compiled/reviewed native Frame+Touch UI candidate and optional gaze/head HUD; stage c1f35a62263f4764a1480041291f0b9c. Physical baseline/acceptance next. No live mutation.
+
+2026-10-04T00:51:57.733540+00:00 Controller feedback: 7c6fb1e adds bounded optional haptics and cached UI snapshots; review disabled-button pulse issue fixed. Build f566a5807c724c90ad714496b82ddac9 and payload integrity pass; no physical data or live mutation.
