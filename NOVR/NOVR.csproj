@@ -17,6 +17,7 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\NOVR.XR.OpenXR\NOVR.XR.OpenXR.csproj" Private="false"/>
+        <ProjectReference Include="..\NOVR.SteamVR\NOVR.SteamVR.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="../third_party/ValveOpenXR/LICENSE.md" Link="Licenses/ValveOpenXR.txt" CopyToOutputDirectory="PreserveNewest" />

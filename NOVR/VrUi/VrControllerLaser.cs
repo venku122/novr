@@ -43,7 +43,12 @@ namespace NOVR.VrUi
         private float _nextSpaceDebugTime;
         private int _updateCounter;
 
-        private void Update()
+        [BeforeRenderOrder(300)]
+        protected override void OnBeforeRender() => UpdateBeam();
+
+        private void LateUpdate() => UpdateBeam();
+
+        private void UpdateBeam()
         {
             _updateCounter++;
 
@@ -83,7 +88,7 @@ namespace NOVR.VrUi
             var cursorPos = cursor.CursorPosition;
 
             // Read current frame controller origin for the line start
-            bool gotHand = VrControllerInput.TryGetDominantHand(out var handPos, out var handRot, out _);
+            bool gotHand = VrControllerInput.TryGetPointerPoseForRender(out var handPos, out var handRot);
             if (gotHand)
                 controllerPos = handPos;
 

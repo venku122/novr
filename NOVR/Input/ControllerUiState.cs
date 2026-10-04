@@ -15,6 +15,8 @@ internal sealed class ControllerUiState
     private PointerHand _hand;
     private bool _pressed;
     private bool _armed;
+    private PointerHand _gripSelection;
+    private bool _rightGripHeld, _leftGripHeld, _rightAvailable, _leftAvailable;
 
     public static PointerHand ChooseHand(bool right, bool left, string preference, PointerHand current, bool pressed)
     {
@@ -23,9 +25,25 @@ internal sealed class ControllerUiState
         return right ? PointerHand.Right : left ? PointerHand.Left : PointerHand.None;
     }
 
-    public ControllerUiFrame Update(bool right, bool left, string preference, float rightTrigger, bool rightConfirm, float leftTrigger, bool leftConfirm)
+    public ControllerUiFrame Update(bool right, bool left, string preference, float rightTrigger, bool rightConfirm, float leftTrigger, bool leftConfirm,
+        float rightGrip = 0, float leftGrip = 0)
     {
-        var hand = ChooseHand(right, left, preference, _hand, _pressed);
+        var rightHeld = right && IsGripHeld(rightGrip, _rightGripHeld);
+        var leftHeld = left && IsGripHeld(leftGrip, _leftGripHeld);
+        var rightDown = right && _rightAvailable && rightHeld && !_rightGripHeld;
+        var leftDown = left && _leftAvailable && leftHeld && !_leftGripHeld;
+        _rightAvailable = right; _leftAvailable = left;
+        _rightGripHeld = rightHeld; _leftGripHeld = leftHeld;
+        if (!right && !left) _gripSelection = PointerHand.None;
+        if (preference == "Auto" && !_pressed)
+        {
+            // Simultaneous squeezes preserve ownership. A held grip cannot steal a drag on release.
+            if (leftDown && !rightDown) _gripSelection = PointerHand.Left;
+            else if (rightDown && !leftDown) _gripSelection = PointerHand.Right;
+        }
+        var selectedPreference = preference == "Auto" && _gripSelection == PointerHand.Left ? "Left" : preference;
+        var hand = ChooseHand(right, left, selectedPreference, _hand, _pressed);
+        if (preference == "Auto") _gripSelection = hand;
         var up = false;
         if (hand != _hand)
         {
@@ -43,6 +61,9 @@ internal sealed class ControllerUiState
         else if (_armed && !_pressed && (confirm || trigger >= .55f)) { _pressed = true; down = true; }
         return new ControllerUiFrame(hand, _pressed, down, up);
     }
+
+    private static bool IsGripHeld(float value, bool held) =>
+        !float.IsNaN(value) && !float.IsInfinity(value) && value >= (held ? .45f : .55f);
 }
 
 /// <summary>Focus/ray/lifecycle cancellation requires a fresh physical release before re-entry.</summary>

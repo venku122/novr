@@ -21,6 +21,7 @@ namespace NOVR.VrUi
         private static InputAction? _leftAimRot;
         private static InputAction? _rightTrigger;
         private static InputAction? _leftTrigger;
+        private static InputAction? _rightGrip, _leftGrip;
         private static InputAction? _headPos;
         private static InputAction? _headRot;
         private static bool _actionsInitialized;
@@ -47,6 +48,7 @@ namespace NOVR.VrUi
                 ("rightBack", _rightBack), ("leftBack", _leftBack),
                 ("rightScroll", _rightScroll), ("leftScroll", _leftScroll),
                 ("rightMenu", _rightMenu), ("leftMenu", _leftMenu),
+                ("rightGrip", _rightGrip), ("leftGrip", _leftGrip),
                 ("headPosition", _headPos), ("headRotation", _headRot)
             };
             foreach (var item in actions)
@@ -111,7 +113,8 @@ namespace NOVR.VrUi
             _rawRightTrigger = TryReadFloat(_rightTrigger);
             _rawLeftTrigger = TryReadFloat(_leftTrigger);
             _uiFrame = UiState.Update(_rightValid, _leftValid, ModConfiguration.Instance.PointerHand.Value,
-                _rawRightTrigger, TryReadFloat(_rightConfirm) > .5f, _rawLeftTrigger, TryReadFloat(_leftConfirm) > .5f);
+                _rawRightTrigger, TryReadFloat(_rightConfirm) > .5f, _rawLeftTrigger, TryReadFloat(_leftConfirm) > .5f,
+                TryReadFloat(_rightGrip), TryReadFloat(_leftGrip));
             var rightBack = _rightValid && TryReadFloat(_rightBack) > .5f;
             var leftBack = _leftValid && TryReadFloat(_leftBack) > .5f;
             BackDown = _uiFrame.Hand == PointerHand.Right ? rightBack && !_rightBackWasHeld : _uiFrame.Hand == PointerHand.Left && leftBack && !_leftBackWasHeld;
@@ -121,6 +124,14 @@ namespace NOVR.VrUi
             if (!_rightValid) _rightRotFilter = null;
             if (!_leftValid) _leftRotFilter = null;
 
+            if (!ModConfiguration.Instance.ControllerPoseSmoothing.Value)
+            {
+                _filtRightPos = _rawRightPos; _filtRightRot = _rawRightRot;
+                _filtLeftPos = _rawLeftPos; _filtLeftRot = _rawLeftRot;
+                _rightRotFilter = _leftRotFilter = null; _filtInitialized = false;
+            }
+            else
+            {
             // Initialize filters on first valid data
             if (!_filtInitialized)
             {
@@ -175,6 +186,8 @@ namespace NOVR.VrUi
                 }
             }
 
+            }
+
             // Refresh XR rig periodically
             RefreshRig();
 
@@ -202,7 +215,7 @@ namespace NOVR.VrUi
         }
 
         private static bool TryReadRawPose(InputAction? posAction, InputAction? rotAction,
-            out Vector3 pos, out Quaternion rot)
+            out Vector3 pos, out Quaternion rot, bool aimPose = true)
         {
             pos = Vector3.zero;
             rot = Quaternion.identity;
@@ -212,7 +225,7 @@ namespace NOVR.VrUi
             {
                 if (!(control.device is TrackedDevice device) || device.isTracked.ReadValue() < .5f) continue;
                 var aim = device.TryGetChildControl<PoseControl>("pointer");
-                if (aim != null && aim.isTracked.ReadValue() > .5f && (aim.trackingState.ReadValue() & 3) == 3)
+                if (aimPose && aim != null && aim.isTracked.ReadValue() > .5f && (aim.trackingState.ReadValue() & 3) == 3)
                 { pos = aim.position.ReadValue(); rot = aim.rotation.ReadValue(); return true; }
                 if ((device.trackingState.ReadValue() & 3) != 3) continue;
                 pos = device.devicePosition.ReadValue(); rot = device.deviceRotation.ReadValue(); return true;
@@ -263,6 +276,8 @@ namespace NOVR.VrUi
             _headRot = new InputAction(binding: "<XRHMD>/centerEyeRotation");
             _headRot.AddBinding("<XRHMD>/deviceRotation");
 
+            _rightGrip = CreateUiAction("UI_HAND_RIGHT", "RightHand", "grip", "gripPressed");
+            _leftGrip = CreateUiAction("UI_HAND_LEFT", "LeftHand", "grip", "gripPressed");
             _rightConfirm = CreateUiAction("UI_SELECT_RIGHT", "RightHand", "primaryButton", "faceButtonBottom");
             _leftConfirm = CreateUiAction("UI_SELECT_LEFT", "LeftHand", "primaryButton", "faceButtonBottom");
             _rightBack = CreateUiAction("UI_BACK_RIGHT", "RightHand", "secondaryButton", "faceButtonOutside");
@@ -344,9 +359,7 @@ namespace NOVR.VrUi
         }
 
         /// <summary>
-        /// Converts a filtered controller pose from tracking space to world space
-        /// using the XR rig transform. No headset data is used — the controller
-        /// and headset are in the same tracking space, so we transform directly.
+        /// Converts the selected raw/optionally filtered pose to NOVR's calibrated UI frame.
         /// </summary>
         public static bool TryGetPoseInWorldSpace(XRNode hand, Vector3 cameraWorldPos,
             out Vector3 worldPosition, out Quaternion worldRotation)
@@ -360,15 +373,8 @@ namespace NOVR.VrUi
 
             if (valid)
             {
-                // Position: controller at head-relative offset from the calibrated headset
-                // world position. Using NOVRHeadsetData.Translation (rather than Camera.main's
-                // transform) keeps the controller's world position stable when Camera.main
-                // changes between scenes (e.g. menu → mission picker swap).
-                // Subtracting rawHeadPos removes the HMD height, so a controller at
-                // chest height IRL (trackingPos.y ≈ 0.8) appears at chest height
-                // in game rather than at eye-level + 0.8.
-                // Rotation: controller's own tracking orientation — not multiplied by
-                // headset rotation, so the ray direction does not follow the HMD / aircraft.
+                // Express the head-relative controller pose in the calibrated VR UI camera
+                // frame. This preserves physical translation and the recenter orientation.
                 var camera = APIBus.CockpitHudCamera;
                 if (camera == null || !_headValid) { worldPosition = Vector3.zero; worldRotation = Quaternion.identity; return false; }
                 var trackingToUi = camera.transform.rotation * Quaternion.Inverse(_rawHeadRot);
@@ -380,6 +386,32 @@ namespace NOVR.VrUi
             worldPosition = Vector3.zero;
             worldRotation = Quaternion.identity;
             return false;
+        }
+
+        // Render refresh reads poses only. Click/grip edges remain owned by the once-per-frame Update.
+        internal static bool TryGetPointerPoseForRender(out Vector3 position, out Quaternion rotation)
+        {
+            EnsureFrame();
+            position = Vector3.zero; rotation = Quaternion.identity;
+            var selected = _uiFrame.Hand;
+            if (selected == PointerHand.None) return false;
+            if (ModConfiguration.Instance.ControllerPoseSmoothing.Value)
+                return TryGetPoseInWorldSpace(selected == PointerHand.Left ? XRNode.LeftHand : XRNode.RightHand, Vector3.zero, out position, out rotation);
+            return TryGetCurrentPoseInUi(selected == PointerHand.Left, true, out position, out rotation);
+        }
+
+        internal static bool TryGetCurrentPoseInUi(bool left, bool aim, out Vector3 position, out Quaternion rotation)
+        {
+            position = Vector3.zero; rotation = Quaternion.identity;
+            if (!_actionsInitialized) return false;
+            if (!TryReadRawPose(left ? _leftAimPos : _rightAimPos, left ? _leftAimRot : _rightAimRot, out var p, out var r, aim) ||
+                !TryReadRawPose(_headPos, _headRot, out var headPosition, out var headRotation)) return false;
+            var camera = APIBus.CockpitHudCamera;
+            if (camera == null) return false;
+            var trackingToUi = camera.transform.rotation * Quaternion.Inverse(headRotation);
+            position = camera.transform.position + trackingToUi * (p - headPosition);
+            rotation = trackingToUi * r;
+            return true;
         }
 
         internal static void LogDiagnostics()

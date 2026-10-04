@@ -78,7 +78,11 @@ public class VrUiCursor: NOVRBehaviour
             NOVRPlugin.LogSource.LogMessage($"[VrUiCursor] Awake id={_instanceId} name={name} parent={(transform.parent != null ? transform.parent.name : "<none>")}");
     }
 
-    private void OnDisable() => CancelPointer();
+    protected override void OnDisable()
+    {
+        CancelPointer();
+        base.OnDisable();
+    }
 
     private void OnDestroy()
     {
@@ -244,6 +248,21 @@ public class VrUiCursor: NOVRBehaviour
         _texture = CreateCursorTexture();
         if (NOVRPlugin.LogSource != null)
             NOVRPlugin.LogSource.LogMessage($"[VrUiCursor] Start id={_instanceId}");
+    }
+
+    // Head/camera pose drivers run at the default before-render order (0).
+    [BeforeRenderOrder(200)]
+    protected override void OnBeforeRender()
+    {
+        if (!_controllerModeActive || !Application.isFocused) return;
+        if (!VrControllerInput.TryGetPointerPoseForRender(out _controllerOrigin, out _controllerRotation))
+        {
+            if (_cursor != null) _cursor.SetActive(false);
+            _hasActiveCanvas = false;
+            return;
+        }
+        // Visual ray only: never fire EventSystem events or advance input edges here.
+        UpdateCursorAnglesFromController(true);
     }
 
     private void Update()
@@ -698,7 +717,7 @@ public class VrUiCursor: NOVRBehaviour
         }
     }
 
-    private void UpdateCursorAnglesFromController()
+    private void UpdateCursorAnglesFromController(bool visualOnly = false)
     {
         var camera = UiCamera;
         if (camera == null) return;
@@ -716,6 +735,22 @@ public class VrUiCursor: NOVRBehaviour
         Vector3 localDir = _controllerRotation * Vector3.forward;
         Ray probeRay = new Ray(_controllerOrigin, localDir);
         _lastProbeRay = probeRay;
+
+        if (visualOnly)
+        {
+            // Keep the Update-selected canvas. Late pose refresh must not allocate pointer
+            // events, rescan graphics, change hover ownership, or deliver extra clicks.
+            if (!_hasActiveCanvas || _activeCanvas == null || !_activeCanvas.gameObject.activeInHierarchy) return;
+            var plane = _activeCanvas.transform;
+            var denominator = Vector3.Dot(plane.forward, probeRay.direction);
+            if (denominator <= .0001f) { _cursor.SetActive(false); return; }
+            var distance = Vector3.Dot(plane.forward, plane.position - probeRay.origin) / denominator;
+            if (distance < 0) { _cursor.SetActive(false); return; }
+            _lastCursorTargetPos = probeRay.GetPoint(distance);
+            _cursor.transform.position = _lastCursorTargetPos;
+            _cursor.transform.rotation = Quaternion.LookRotation(plane.forward, plane.up);
+            return;
+        }
 
         if (VrCanvasHitTester.RaycastCanvasPlanes(probeRay, out var hit))
         {

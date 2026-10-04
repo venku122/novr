@@ -22,14 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="..\lib\Valve.Newtonsoft.Json.dll">
-            <Private>True</Private>
-        </Reference>
+        <Reference Include="System.Runtime.Serialization" />
     </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\NOVR.XR.OpenVR\NOVR.XR.OpenVR.csproj" />
-        <ProjectReference Include="..\NOVR.XR.OpenXR\NOVR.XR.OpenXR.csproj" />
-    </ItemGroup>
-
 </Project>

@@ -33,6 +33,8 @@ internal sealed class InputDiagnosticSnapshot
     public string frameExtensionAvailable = "";
     public string frameExtensionEnabled = "";
     public float renderScale;
+    public float frameMilliseconds;
+    public bool controllerPoseSmoothing;
     public bool gazeValid;
     public string gazeStatus = "";
     public Vector3 gazeTrackingPosition;
@@ -60,6 +62,8 @@ internal sealed class InputDiagnosticSnapshot
             frameExtensionAvailable = Safe(() => OpenXRRuntime.GetExtensionVersion("XR_VALVE_frame_controller_interaction").ToString()),
             frameExtensionEnabled = Safe(() => OpenXRRuntime.IsExtensionEnabled("XR_VALVE_frame_controller_interaction").ToString()),
             renderScale = XRSettings.eyeTextureResolutionScale,
+            frameMilliseconds = Time.unscaledDeltaTime * 1000f,
+            controllerPoseSmoothing = ModConfiguration.Instance.ControllerPoseSmoothing.Value,
             eyeWidth = XRSettings.eyeTextureWidth, eyeHeight = XRSettings.eyeTextureHeight,
             novrBindings = VrControllerInput.GetDiagnosticBindings()
         };
@@ -151,7 +155,7 @@ internal sealed class InputDiagnosticSnapshot
 }
 
 [Serializable]
-internal sealed class UiPointerSnapshot
+public sealed class UiPointerSnapshot
 {
     public string source = "unavailable", hand = "None";
     public bool cursorVisible, focused, hasCanvasHit, pressed, dragging;
@@ -163,7 +167,7 @@ internal sealed class UiPointerSnapshot
 }
 
 [Serializable]
-internal sealed class DeviceSnapshot
+public sealed class DeviceSnapshot
 {
     public string id = "";
     public string name = "";
@@ -176,7 +180,7 @@ internal sealed class DeviceSnapshot
 }
 
 [Serializable]
-internal sealed class ControlSnapshot
+public sealed class ControlSnapshot
 {
     public string name = "";
     public string type = "";

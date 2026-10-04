@@ -57,6 +57,8 @@ public class NOUIManager : NOVRBehaviour
         UIBehaviorPatcher.DoPatching();
         Create<VrUiCursor>(transform);
         Create<VrControllerLaser>(transform);
+        if (ModConfiguration.Instance.EnableSteamFrameInput.Value && ModConfiguration.Instance.ShowFrameControllerModels.Value)
+            Create<FrameControllerModels>(transform);
         Create<NativeVrUiRoot>(transform);
         ConfigureUiCameras();
     }

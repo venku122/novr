@@ -25,6 +25,9 @@ public class ModConfiguration
     public readonly ConfigEntry<string> PointerHand;
     public readonly ConfigEntry<float> ControllerScrollSpeed;
     public readonly ConfigEntry<bool> ControllerUiHaptics;
+    public readonly ConfigEntry<bool> ControllerPoseSmoothing;
+    public readonly ConfigEntry<bool> ShowFrameControllerModels;
+    public readonly ConfigEntry<string> SteamVrRuntimeDirectory;
     public readonly ConfigEntry<bool> EnableEyeTracking;
     public readonly ConfigEntry<bool> ShowGazeReticle;
     public readonly ConfigEntry<string> HelmetHudTracking;
@@ -119,6 +122,9 @@ public class ModConfiguration
             "Enable Valve native Frame and Oculus Touch compatibility OpenXR profiles before XR initialization. Restart required. UI actions only; HOTAS flight input is unchanged. Hardware validation pending.");
         PointerHand = config.Bind("VR Input", "Pointer Hand", "Auto", "Auto, Right or Left preference; a single available controller is usable. Selection holds its hand until release.");
         ControllerScrollSpeed = config.Bind("VR Input", "Scroll Speed", 8f, "UI scroll units per second from the pointer hand thumbstick; no flight-axis mapping.");
+        ControllerPoseSmoothing = config.Bind("VR Input", "Controller Pose Smoothing", false, "Optional legacy filtering. Off uses fresh tracked poses for minimum latency; click/drag edges still run once per game frame.");
+        ShowFrameControllerModels = config.Bind("VR Input", "Show Frame Controller Models", true, "Load static Valve Frame meshes/textures from the installed SteamVR runtime. Requires Steam Frame Input; restart after toggling. No packaged Valve model assets.");
+        SteamVrRuntimeDirectory = config.Bind("VR Input", "SteamVR Runtime Directory", "", "Optional SteamVR installation root for model assets. Empty discovers the registered runtime from openvrpaths.vrpath.");
         ControllerUiHaptics = config.Bind("VR Input", "UI Haptics", true, "Short pulse on controller UI activation, when Steam Frame input and impulse haptics are supported. No pulse on hover, drag or mouse activation.");
         EnableEyeTracking = config.Bind("VR Input", "Enable Eye Tracking", false, "Opt in to XR_EXT_eye_gaze_interaction. Exposes tracked gaze snapshots when runtime/privacy settings allow. Does not aim weapons, click, or change graphics.");
         ShowGazeReticle = config.Bind("VR Input", "Show Gaze Reticle", false, "Show a small noninteractive gaze ring on VR UI when tracked gaze is available. No automatic hover, click or targeting. Requires Eye Tracking enabled; restart after enabling.");
