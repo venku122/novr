@@ -31,6 +31,7 @@ static class Program
         Check(!declutter.CockpitDecluttered,"disabled declutter clears diagnostic");
         Check(!declutter.UseHelmet(HudStatusMode.Smart,40,25,true,true,float.NaN,35),"invalid downward angle safe");
         PlacementTests.Run();
+        NumericVisibilityTests.Run();
         Console.WriteLine("HUD policy tests passed."); return 0;
     }
 }

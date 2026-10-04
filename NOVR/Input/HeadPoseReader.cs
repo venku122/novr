@@ -35,6 +35,9 @@ internal static class HeadPoseReader
         InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.HeadMounted, XrHeads);
         foreach (var device in XrHeads)
         {
+            // Eye-gaze devices also advertise HeadMounted. They are not HMD
+            // head poses and must never drive the accepted seated camera.
+            if ((device.characteristics & InputDeviceCharacteristics.EyeTracking) != 0) continue;
             if (!device.isValid || !device.TryGetFeatureValue(CommonUsages.isTracked, out var tracked) || !tracked ||
                 !device.TryGetFeatureValue(CommonUsages.trackingState, out var state) ||
                 (state & (InputTrackingState.Position | InputTrackingState.Rotation)) != (InputTrackingState.Position | InputTrackingState.Rotation)) continue;

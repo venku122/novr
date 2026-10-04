@@ -10,6 +10,7 @@ public class NOVRFlightHudBehavior : UIRenderedCanvasBehavior
     private readonly HudStatusPolicy _statusPolicy = new();
     private HudPanelPlacement[] _statusPanels = System.Array.Empty<HudPanelPlacement>();
     private Transform? _helmetCenter;
+    internal bool HelmetCenterAvailable => _helmetCenter != null && _helmetCenter.gameObject.activeInHierarchy;
     public bool StatusFollowsHelmet { get; private set; }
     public float StatusBoresightAngle { get; private set; }
     public float StatusLookingDownAngle { get; private set; }
