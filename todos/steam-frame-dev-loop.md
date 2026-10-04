@@ -18,7 +18,10 @@ Prepared substeps (not hardware milestone acceptance):
 - [x] Real Windows runtime staging build produced and payload hashes verified.
 - [x] Diagnostic policy and build/deployment/rollback/launch safety tests pass.
 - [x] Independent review findings repaired.
+- [x] Bounded external recording/session/evidence and prepared Codex command boundaries tested.
+- [x] Real Windows synthetic FFmpeg/speech/session roundtrip (no headset microphone).
+- [x] Opt-in legacy key/HOTAS capture bridge compiles; pure gesture safety tests pass.
 - [ ] Physical baseline input/session capture.
 - [ ] Live deployment/rollback/SteamVR launch acceptance.
 
-Next: docs/development/steam-frame-baseline.md. M1/M2 await actual runtime data; M5-M8 remain queued.
+Next: docs/development/steam-frame-baseline.md. M1/M2 await actual runtime data; External M5/M7 preparation is verified independently; actual M5-M8 acceptance remains pending.

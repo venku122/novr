@@ -7,3 +7,6 @@
 - Reject reparse-point ancestry on both game and stage paths, and on deployment metadata/payloads. Repeated source/glob issue got a focused reproducer rather than retrying identical builds.
 - Reviewer found five build/deploy/launch safety defects; fixes and regression tests precede final stage. No live deployment, configuration change or actual game launch performed.
 - Native goal created. Native todo API is absent in this tool session; use STATE.json plus the durable checklist, explicitly report this limitation.
+
+- Ruling: prepare external M5/M7 tooling while M0 awaits a real headset trace. These are independent interfaces and local tests; no controller/profile/UI implementation or hardware milestone is advanced. The earlier sequential milestone graph described acceptance order, not a prohibition on independent tooling preparation.
+- Windows exposes Steam Streaming Microphone, FFmpeg and an en-US local speech recognizer. Use configured device selection and local transcription; no microphone is recorded during unattended development. Node Windows test runtime is downloaded from official nodejs.org and SHA256 checked in Mayor's local tool directory; product code contains no machine-specific path.

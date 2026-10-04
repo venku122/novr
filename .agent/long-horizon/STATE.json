@@ -6,7 +6,7 @@
     "objective": "Steam Frame controller UI, HOTAS coexistence, evidence capture, safe staging/deploy/rollback and Codex assisted VR iteration with actual hardware acceptance",
     "status": "active",
     "created_at": "2026-10-03T18:10:32-05:00",
-    "updated_at": "2026-10-03T23:39:29.486093+00:00"
+    "updated_at": "2026-10-04T00:18:58.172580+00:00"
   },
   "control": {
     "mode": "single-executor",
@@ -60,10 +60,12 @@
           "E-inventory",
           "E-final-build",
           "E-policy-tests",
-          "E-review"
+          "E-review",
+          "E-playtest-stage",
+          "E-playtest-integrity"
         ]
       },
-      "checkpoint": "404f65fb777414633729fd88179768594d871d91",
+      "checkpoint": "7d44cf52f982eb1f446fc9d8f3dc6b524979be21",
       "notes": [
         "Read-only diagnostic package prepared. Actual profiles/raw controller data needed before M1/M2 behavior changes."
       ]
@@ -170,10 +172,12 @@
           "E-msbuild-tests",
           "E-deployment-tests",
           "E-launch-tests",
-          "E-review"
+          "E-review",
+          "E-playtest-stage",
+          "E-playtest-integrity"
         ]
       },
-      "checkpoint": "404f65fb777414633729fd88179768594d871d91",
+      "checkpoint": "7d44cf52f982eb1f446fc9d8f3dc6b524979be21",
       "notes": [
         "Safe staging and disposable-tree safety verified. Live deploy/rollback/SteamVR launch not exercised."
       ]
@@ -202,7 +206,9 @@
         "evidence_ids": []
       },
       "checkpoint": null,
-      "notes": []
+      "notes": [
+        "External capture and optional bridge tested synthetically; real microphone/gesture/Unity screenshot evidence still required."
+      ]
     },
     {
       "id": "M6",
@@ -254,7 +260,9 @@
         "evidence_ids": []
       },
       "checkpoint": null,
-      "notes": []
+      "notes": [
+        "Hashed evidence bundles and explicit sandbox/worktree job argv prepared; actual Codex execution and full workflow unverified."
+      ]
     },
     {
       "id": "M8",
@@ -281,6 +289,41 @@
       },
       "checkpoint": null,
       "notes": []
+    },
+    {
+      "id": "PT-001",
+      "title": "Independent TypeScript playtest capture and Codex boundary tooling",
+      "required": true,
+      "state": "verified",
+      "priority": 6,
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Bounded opt-in audio service, structured session/evidence, local transcription and explicit command boundaries pass tests",
+        "No controller/profile/UI behavior change and no live installation mutation",
+        "Hardware integration remains unverified"
+      ],
+      "validation": [
+        "TypeScript build, native node tests, synthesized Windows audio/transcription tests and existing C# build/safety gates"
+      ],
+      "attempt_count": 1,
+      "max_attempts": 3,
+      "verification": {
+        "status": "passed",
+        "auditor": "Windows/Linux tests and independent read-only /root/baseline_review; scope is preparation only",
+        "evidence_ids": [
+          "E-playtest-linux",
+          "E-playtest-windows",
+          "E-playtest-gesture",
+          "E-playtest-review",
+          "E-playtest-stage",
+          "E-playtest-integrity"
+        ]
+      },
+      "checkpoint": "7d44cf52f982eb1f446fc9d8f3dc6b524979be21",
+      "notes": [
+        "Preparation subtask; M5/M7 hardware/integration milestones retain original acceptance gates.",
+        "Optional read-only legacy key capture bridge and synthetic roundtrip prepared; no real headset/microphone/flight acceptance, no agent invocation or deployment."
+      ]
     }
   ],
   "evidence": [
@@ -347,6 +390,54 @@
       "summary": "Independent reviewer confirmed five safety findings repaired; hardware remains unverified",
       "created_at": "2026-10-03T23:39:29.486093+00:00",
       "immutable": false
+    },
+    {
+      "id": "E-playtest-linux",
+      "type": "test-report",
+      "path": "evidence/playtest-tests-linux.txt",
+      "summary": "15 portable tests pass; one native Windows fixture skipped",
+      "created_at": "2026-10-04T00:18:58.172580+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-playtest-windows",
+      "type": "test-report",
+      "path": "evidence/playtest-tests-windows.txt",
+      "summary": "All 16 Windows tests pass, including synthesized speech/session roundtrip; no real microphone",
+      "created_at": "2026-10-04T00:18:58.172580+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-playtest-gesture",
+      "type": "test-report",
+      "path": "evidence/playtest-gesture-tests.txt",
+      "summary": "C# startup privacy, hold/release, timeout and lifecycle tests pass",
+      "created_at": "2026-10-04T00:18:58.172580+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-playtest-review",
+      "type": "review",
+      "path": "evidence/playtest-review.txt",
+      "summary": "Nine important review findings repaired and verified; hardware untested",
+      "created_at": "2026-10-04T00:18:58.172580+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-playtest-stage",
+      "type": "artifact",
+      "path": "../../staging/20261004T001621908Z-f401af08/build.json",
+      "summary": "Windows runtime staging build and all available opted-in tests pass; 427 warnings, zero errors",
+      "created_at": "2026-10-04T00:18:58.172580+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-playtest-integrity",
+      "type": "test-report",
+      "path": "evidence/playtest-stage-integrity.json",
+      "summary": "28 payload hashes/source provenance verified; live DLL/config unchanged",
+      "created_at": "2026-10-04T00:18:58.172580+00:00",
+      "immutable": false
     }
   ],
   "decisions": [],
@@ -359,17 +450,18 @@
   ],
   "next_action": {
     "task_id": "M0",
-    "reason": "Run docs/development/steam-frame-baseline.md on Steam Frame; return session path and ray/hover/click/HOTAS observations. Interpret raw profile/action resolution before changing behavior."
+    "reason": "User must run the precise physical failing-session baseline before input/profile/UI behavior changes; optional capture test follows separately."
   },
   "termination": {
     "condition": null,
-    "summary": "Physical headset baseline is required before dependent controller/UI implementation. Goal remains active; no acceptance claim."
+    "summary": "Reached requested manual hardware checkpoint after independently verified playtest preparation. Goal remains active/incomplete. Native controller/UI, full transform telemetry and end-to-end Codex/deployment hardware gates remain open."
   },
   "artifacts": {
-    "stage_directory": "staging/20261003T233707935Z-4d0b4c04",
-    "build_id": "e5d61593b6074aa68ff4c8e50d202120",
-    "code_commit": "404f65fb777414633729fd88179768594d871d91",
+    "stage_directory": "staging/20261004T001621908Z-f401af08",
+    "build_id": "dc5af227d69b4941b42b80dbf43455e6",
+    "code_commit": "7d44cf52f982eb1f446fc9d8f3dc6b524979be21",
     "hardware_status": "not-tested",
-    "live_deployment": "not-performed"
+    "live_deployment": "not-performed",
+    "playtest_preparation": "synthetic-tests-pass; actual-headset-pending"
   }
 }
