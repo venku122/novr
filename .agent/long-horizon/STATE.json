@@ -586,6 +586,7 @@
     "head_capture_session": 57397,
     "head_evidence_directory": "playtest/sessions/20261004T031014308Z-seated-head",
     "head_capture_status": "Completed 98 actual cockpit samples on prior a7d82f4 candidate. Valid InputSystem/centerEye; calibration sequences 2/3, manual and aircraft-change only. Physical cockpit stability still requires user report.",
-    "gamepad": "Previously actual game detected assigned XInput Gamepad 1 alongside HOTAS. New main config Controller Mode UiHotas(default)/UiGamepad controlled live by VR UI Settings; physical switch acceptance pending."
+    "gamepad": "Previously actual game detected assigned XInput Gamepad 1 alongside HOTAS. New main config Controller Mode UiHotas(default)/UiGamepad controlled live by VR UI Settings; physical switch acceptance pending.",
+    "controller_mode_runtime": "Main config persisted UiHotas; new process 36096, companion loaded without bus-connect log and Windows PnP has no present Xbox 360 endpoint. Read-only game discovery still exposes Steam-associated XInput slot0 (handle32176874, unknown type), so physical UI-only no-flight behavior must be tested; do not infer all gamepad entries disappear or modify Steam settings without evidence."
   }
 }
