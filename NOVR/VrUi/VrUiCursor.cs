@@ -20,6 +20,52 @@ public class VrUiCursor: NOVRBehaviour
     public bool IsActive => _cursor != null && _cursor.activeSelf;
     public Vector3 CursorPosition => _cursor != null ? _cursor.transform.position : Vector3.zero;
 
+    // Snapshot only: uses the current cached hit and performs no raycast or hierarchy scan.
+    internal NOVR.Diagnostics.UiPointerSnapshot GetDiagnosticSnapshot()
+    {
+        var canvas = _hasActiveCanvas ? _activeCanvas : null;
+        var t = canvas != null ? canvas.transform : null;
+        return new NOVR.Diagnostics.UiPointerSnapshot
+        {
+            source = _controllerModeActive ? "Controller" : "Mouse", hand = _pointerSourceHand.ToString(),
+            cursorVisible = IsActive, focused = Application.isFocused,
+            hasCanvasHit = canvas != null && IsActive && Application.isFocused && !_isOffscreen,
+            canvasName = canvas != null ? canvas.name : "", renderMode = canvas != null ? canvas.renderMode.ToString() : "",
+            canvasCamera = canvas != null && canvas.worldCamera != null ? canvas.worldCamera.name : "",
+            canvasParent = t != null && t.parent != null ? t.parent.name : "",
+            canvasPosition = t != null ? t.position : Vector3.zero,
+            canvasRotation = t != null ? t.rotation : Quaternion.identity,
+            canvasScale = t != null ? t.lossyScale : Vector3.zero,
+            hoveredObject = _hovered != null ? _hovered.name : "",
+            pressedObject = _pointerPress != null ? _pointerPress.name : "",
+            dragObject = _pointerDrag != null ? _pointerDrag.name : "",
+            screenPoint = _pointerEventData != null ? _pointerEventData.position : Vector2.zero,
+            pressed = _wasLeftDown, dragging = _pointerEventData != null && _pointerEventData.dragging,
+            rayOrigin = _lastProbeRay.origin, rayDirection = _lastProbeRay.direction,
+            hitWorldPoint = canvas != null ? _lastCursorTargetPos : Vector3.zero
+        };
+    }
+
+    private bool _hapticsFailed;
+    private void PulseUiActivation()
+    {
+        if (_hapticsFailed || !_controllerModeActive ||
+            !ModConfiguration.Instance.EnableSteamFrameInput.Value || !ModConfiguration.Instance.ControllerUiHaptics.Value) return;
+        var node = _pointerSourceHand == NOVR.Controllers.PointerHand.Left ? XRNode.LeftHand : XRNode.RightHand;
+        if (_pointerSourceHand == NOVR.Controllers.PointerHand.None) return;
+        try
+        {
+            var device = InputDevices.GetDeviceAtXRNode(node);
+            if (device.isValid && device.TryGetHapticCapabilities(out var caps) && caps.supportsImpulse && caps.numChannels > 0)
+                device.SendHapticImpulse(0, .12f, .025f);
+        }
+        catch (System.Exception exception)
+        {
+            _hapticsFailed = true;
+            NOVRPlugin.LogSource?.LogWarning($"UI haptics unavailable; disabled for this cursor: {exception.Message}");
+        }
+    }
+
     protected override void Awake()
     {
         base.Awake();
@@ -472,7 +518,13 @@ public class VrUiCursor: NOVRBehaviour
         {
             if (_pointerPress != null) ExecuteEvents.Execute(_pointerPress, ped, ExecuteEvents.pointerUpHandler);
             if (ped.eligibleForClick && _pointerPress != null && _pointerPress == ExecuteEvents.GetEventHandler<IPointerClickHandler>(current))
-                ExecuteEvents.Execute(_pointerPress, ped, ExecuteEvents.pointerClickHandler);
+            {
+                var selectable = _pointerPress.GetComponent<Selectable>();
+                // Execute reports delivery, even when a disabled Button rejects the click.
+                // Read eligibility before the handler can destroy or disable its object.
+                var feedbackAllowed = selectable == null || (selectable.IsActive() && selectable.IsInteractable());
+                if (ExecuteEvents.Execute(_pointerPress, ped, ExecuteEvents.pointerClickHandler) && feedbackAllowed) PulseUiActivation();
+            }
             if (ped.dragging && _pointerDrag != null)
             {
                 if (current != null) ExecuteEvents.ExecuteHierarchy(current, ped, ExecuteEvents.dropHandler);

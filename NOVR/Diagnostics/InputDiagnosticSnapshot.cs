@@ -38,6 +38,7 @@ internal sealed class InputDiagnosticSnapshot
     public Vector3 gazeTrackingPosition;
     public Quaternion gazeTrackingRotation;
     public string helmetHudTracking = "";
+    public UiPointerSnapshot uiPointer = new UiPointerSnapshot();
     public int eyeWidth;
     public int eyeHeight;
     public string[] novrBindings = Array.Empty<string>();
@@ -64,6 +65,7 @@ internal sealed class InputDiagnosticSnapshot
         };
         snapshot.gazeValid = NOVR.Controllers.EyeGazeInput.TryGetTrackingPose(out snapshot.gazeTrackingPosition, out snapshot.gazeTrackingRotation, out snapshot.gazeStatus);
         snapshot.helmetHudTracking = ModConfiguration.Instance.HelmetHudTracking.Value;
+        if (VrUiCursor.Instance != null) snapshot.uiPointer = VrUiCursor.Instance.GetDiagnosticSnapshot();
         var xr = new List<XrDevice>();
         InputDevices.GetDevices(xr);
         var xrSnapshots = new List<DeviceSnapshot>();
@@ -146,6 +148,18 @@ internal sealed class InputDiagnosticSnapshot
         try { return read(); }
         catch (Exception ex) { return "unavailable:" + ex.GetType().Name; }
     }
+}
+
+[Serializable]
+internal sealed class UiPointerSnapshot
+{
+    public string source = "unavailable", hand = "None";
+    public bool cursorVisible, focused, hasCanvasHit, pressed, dragging;
+    public string canvasName = "", renderMode = "", canvasCamera = "", canvasParent = "";
+    public string hoveredObject = "", pressedObject = "", dragObject = "";
+    public Vector3 canvasPosition, canvasScale, rayOrigin, rayDirection, hitWorldPoint;
+    public Quaternion canvasRotation = Quaternion.identity;
+    public Vector2 screenPoint;
 }
 
 [Serializable]
