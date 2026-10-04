@@ -3,10 +3,10 @@
   "project": {
     "id": "novr-steam-frame-development",
     "name": "NOVR Steam Frame Development",
-    "objective": "Steam Frame controller UI, HOTAS coexistence, evidence capture, safe staging/deploy/rollback and Codex assisted VR iteration with actual hardware acceptance",
+    "objective": "Prioritize actual Steam Frame controller UI and HOTAS coexistence, optional eye gaze and head-following helmet HUD; retain safe development loop and evidence-based hardware acceptance.",
     "status": "active",
     "created_at": "2026-10-03T18:10:32-05:00",
-    "updated_at": "2026-10-04T00:18:58.172580+00:00"
+    "updated_at": "2026-10-04T00:47:11.825700+00:00"
   },
   "control": {
     "mode": "single-executor",
@@ -67,7 +67,7 @@
       },
       "checkpoint": "7d44cf52f982eb1f446fc9d8f3dc6b524979be21",
       "notes": [
-        "Read-only diagnostic package prepared. Actual profiles/raw controller data needed before M1/M2 behavior changes."
+        "Diagnostic-only baseline stage preserved. Candidate behavior remains disabled by default and undeployed until baseline evidence is collected."
       ]
     },
     {
@@ -93,8 +93,10 @@
         "auditor": null,
         "evidence_ids": []
       },
-      "checkpoint": null,
-      "notes": []
+      "checkpoint": "1dc20f362a118971f42d468bc31d572e13f1cddc",
+      "notes": [
+        "Opt-in candidate prepared from source-level architecture findings; actual failing-session baseline and headset acceptance remain required."
+      ]
     },
     {
       "id": "M2",
@@ -119,8 +121,10 @@
         "auditor": null,
         "evidence_ids": []
       },
-      "checkpoint": null,
-      "notes": []
+      "checkpoint": "1dc20f362a118971f42d468bc31d572e13f1cddc",
+      "notes": [
+        "Opt-in candidate prepared from source-level architecture findings; actual failing-session baseline and headset acceptance remain required."
+      ]
     },
     {
       "id": "M3",
@@ -145,8 +149,10 @@
         "auditor": null,
         "evidence_ids": []
       },
-      "checkpoint": null,
-      "notes": []
+      "checkpoint": "1dc20f362a118971f42d468bc31d572e13f1cddc",
+      "notes": [
+        "Opt-in candidate prepared from source-level architecture findings; actual failing-session baseline and headset acceptance remain required."
+      ]
     },
     {
       "id": "M4",
@@ -324,6 +330,62 @@
         "Preparation subtask; M5/M7 hardware/integration milestones retain original acceptance gates.",
         "Optional read-only legacy key capture bridge and synthetic roundtrip prepared; no real headset/microphone/flight acceptance, no agent invocation or deployment."
       ]
+    },
+    {
+      "id": "FRAME-EYE",
+      "title": "Steam Frame eye gaze validity, optional reticle and runtime sharing verified",
+      "required": true,
+      "state": "queued",
+      "priority": 3,
+      "depends_on": [
+        "M0"
+      ],
+      "acceptance_criteria": [
+        "Steam Frame eye gaze validity, optional reticle and runtime sharing verified",
+        "Actual Steam Frame evidence required"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": "1dc20f362a118971f42d468bc31d572e13f1cddc",
+      "notes": [
+        "Requested in latest steering; implementation prepared, physical verification pending. No gaze selection or aircraft aiming."
+      ]
+    },
+    {
+      "id": "FRAME-HUD",
+      "title": "Head-following helmet HUD and aircraft-fixed HUD verified",
+      "required": true,
+      "state": "queued",
+      "priority": 3,
+      "depends_on": [
+        "M0"
+      ],
+      "acceptance_criteria": [
+        "Head-following helmet HUD and aircraft-fixed HUD verified",
+        "Actual Steam Frame evidence required"
+      ],
+      "validation": [
+        "Build and deterministic tests plus recorded real headset test where applicable"
+      ],
+      "attempt_count": 0,
+      "max_attempts": 3,
+      "verification": {
+        "status": "not_run",
+        "auditor": null,
+        "evidence_ids": []
+      },
+      "checkpoint": "1dc20f362a118971f42d468bc31d572e13f1cddc",
+      "notes": [
+        "Requested in latest steering; implementation prepared, physical verification pending. No gaze selection or aircraft aiming."
+      ]
     }
   ],
   "evidence": [
@@ -438,6 +500,30 @@
       "summary": "28 payload hashes/source provenance verified; live DLL/config unchanged",
       "created_at": "2026-10-04T00:18:58.172580+00:00",
       "immutable": false
+    },
+    {
+      "id": "E-controller-stage",
+      "type": "artifact",
+      "path": "../../staging/20261004T004442714Z-3582e2d1/build.json",
+      "summary": "Windows build succeeds: 466 warnings, zero errors. Policy/deploy/rollback/mocked launch and 15 helper tests pass; optional synthetic audio fixture skipped.",
+      "created_at": "2026-10-04T00:47:11.825700+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-controller-integrity",
+      "type": "test-report",
+      "path": "evidence/controller-stage-integrity.json",
+      "summary": "29 payload hashes, source snapshot, 346 runtime/source files and Valve license verified; live DLL/config unchanged.",
+      "created_at": "2026-10-04T00:47:11.825700+00:00",
+      "immutable": false
+    },
+    {
+      "id": "E-controller-review",
+      "type": "review",
+      "path": "evidence/controller-review.txt",
+      "summary": "Five important pointer lifecycle/drag/navigation review findings repaired; final hardware acceptance remains pending.",
+      "created_at": "2026-10-04T00:47:11.825700+00:00",
+      "immutable": false
     }
   ],
   "decisions": [],
@@ -450,18 +536,20 @@
   ],
   "next_action": {
     "task_id": "M0",
-    "reason": "User must run the precise physical failing-session baseline before input/profile/UI behavior changes; optional capture test follows separately."
+    "reason": "Collect untouched failing-session baseline, then activate opt-in reviewed controller/eye/HUD candidate and run controller acceptance. Voice/video development deferred by user."
   },
   "termination": {
     "condition": null,
-    "summary": "Reached requested manual hardware checkpoint after independently verified playtest preparation. Goal remains active/incomplete. Native controller/UI, full transform telemetry and end-to-end Codex/deployment hardware gates remain open."
+    "summary": "Manual hardware checkpoint: native Frame/Touch profiles, controller EventSystem transitions/navigation, optional gaze diagnostics/reticle and head-following helmet HUD compiled/reviewed. No real headset acceptance or live deployment."
   },
   "artifacts": {
-    "stage_directory": "staging/20261004T001621908Z-f401af08",
-    "build_id": "dc5af227d69b4941b42b80dbf43455e6",
-    "code_commit": "7d44cf52f982eb1f446fc9d8f3dc6b524979be21",
+    "stage_directory": "staging/20261004T004442714Z-3582e2d1",
+    "build_id": "c1f35a62263f4764a1480041291f0b9c",
+    "code_commit": "1dc20f362a118971f42d468bc31d572e13f1cddc",
     "hardware_status": "not-tested",
     "live_deployment": "not-performed",
-    "playtest_preparation": "synthetic-tests-pass; actual-headset-pending"
+    "playtest_preparation": "synthetic-tests-pass; actual-headset-pending",
+    "controller_candidate": "opt-in; compiled, reviewed and policy-tested; hardware pending",
+    "gaze_hud": "optional gaze/reticle and Head HUD mode; hardware pending"
   }
 }

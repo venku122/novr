@@ -24,4 +24,12 @@ Prepared substeps (not hardware milestone acceptance):
 - [ ] Physical baseline input/session capture.
 - [ ] Live deployment/rollback/SteamVR launch acceptance.
 
-Next: docs/development/steam-frame-baseline.md. M1/M2 await actual runtime data; External M5/M7 preparation is verified independently; actual M5-M8 acceptance remains pending.
+Current priority: controller UI, then eye tracking and HUD. Voice/video tooling deferred per user steering.
+- [x] Native Valve Frame profile and Touch compatibility registered behind opt-in.
+- [x] Hand policy, trigger hysteresis, cancellation/reconnect hold safety tested.
+- [x] EventSystem hover/click/drag/scroll and back/menu routing built and independently reviewed.
+- [x] Optional gaze snapshots/reticle and head-following helmet HUD built.
+- [ ] FRAME-EYE: actual Frame eye gaze/sharing/blink/reticle behavior.
+- [ ] FRAME-HUD: head-following helmet HUD/recenter/multiple aircraft acceptance.
+
+Next: docs/development/steam-frame-controller-test.md. Preserve diagnostic-only baseline before activating candidate. M1-M3 and eye/HUD remain unaccepted until actual headset evidence. No live installation changed.
