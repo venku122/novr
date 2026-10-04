@@ -45,3 +45,14 @@ Actual tracked gaze/eye-directed Select, minimap readability/click geometry, ful
 
 ## Next action
 Mission→pause→VR UI SETTINGS; Smart+Compact review map peripheral12deg, resize if needed. Open/close full tactical map and check zoom/clicks. Look forward/side/down and assess clear center/readable status. Keep head still, move eyes between contacts, press normal Select; report exact Gaze/Sight status if unavailable. Verify accepted seat/controllers/HOTAS/notifications stay intact. Capture startup and paired cockpit evidence automatically; do not infer hardware acceptance from tests.
+
+
+# Saved fork and Debug/Clean publication
+
+User requested game shutdown, saved source, fork/push, Steam Frame README and Debug/Clean builds. Clean window close completed and game remains stopped; waiting capture helper terminated. No additional deployment/relaunch.
+
+Fork: https://github.com/venku122/novr; default branch feat/steam-frame-diagnostics; origin remains upstream and fork remote is the publishing target. README.STEAM-FRAME.md describes supported/tested controller operation, optional gamepad/HOTAS, HUD/seat/pause settings, experimental gaze, setup/build/deploy/rollback and remaining physical tests. Root README links it and distinguishes upstream installer. Local staging/session/evidence ignore rules added.
+
+Build source a8d2dd3dcc3edf3239329de5ea60b19be856d4e1. Fresh Debug stage frame-debug-a8d2dd3 build1a283532226c4ef194b148b6a15e1dad: Debug config, portable symbols, bridge,42payloadfiles. Clean stage frame-clean-a8d2dd3 build2fc8dcb85ffd4ce6a8a30d79d12aaed0: optimized Release, no bridge/PDB,34payloadfiles. Both actual-game-reference Windows builds0errors and staging logic/safety tests passed. Existing warnings remain. Optional Windows Node suite unavailable; separate Linux npm test15passed1Windowsaudiointegration skipped,0failed. Package manifest hashes, required helper/license files, flavor contents and absence of private evidence/proprietary game references validated.
+
+Prerelease https://github.com/venku122/novr/releases/tag/steam-frame-dev-20261004 includes Debug/Clean ZIPs and SHA256SUMS. Downloaded published assets match local hashes. Source branch pushed without force or upstream PR/merge; no secrets or common live token formats found in branch diff. Clean switching does not automatically remove an already installed debug bridge/symbols, documented explicitly. Original goal incomplete: native eye-directed Select and latest compact HUD still need actual headset retest.

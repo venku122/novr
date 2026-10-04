@@ -70,3 +70,7 @@ Review: docs/development/frame-gaze-hud-review.md.
 - [x] Compact peripheral minimized-map/Smart status candidate built, safely deployed with managed XR and rollback.
 - [x] EyeGaze common-child adapter for both native PoseControl implementations; bounded startup inventory capture.
 - [ ] Physical Compact HUD/minimap/full-map interaction and eye-directed Select acceptance on build37daa10fa0ce4b7b8b6e910d85d9bc3f.
+
+- [x] Game shut down, source saved and pushed to venku122/novr.
+- [x] Steam Frame README and separate validated Debug/Clean prerelease packages published, downloaded checksums verified.
+- [ ] Next headset session: native gaze and compact HUD acceptance; game currently stopped.

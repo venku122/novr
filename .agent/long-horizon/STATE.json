@@ -6,7 +6,7 @@
     "objective": "Prioritize actual Steam Frame controller UI and HOTAS coexistence, optional eye gaze and head-following helmet HUD; retain safe development loop and evidence-based hardware acceptance.",
     "status": "active",
     "created_at": "2026-10-03T18:10:32-05:00",
-    "updated_at": "2026-10-04T05:49:25.618735+00:00"
+    "updated_at": "2026-10-04T06:02:24.967654+00:00"
   },
   "control": {
     "mode": "single-executor",
@@ -614,13 +614,24 @@
     "commit": "a08c075e32ba07fd0876533e014426791b066a85",
     "stage": "staging/20261004T054626162Z-943a79de",
     "buildId": "37daa10fa0ce4b7b8b6e910d85d9bc3f",
-    "status": "deployed and launched; hardware acceptance pending",
+    "status": "review run stopped at user request; no physical acceptance of new gaze/HUD candidate",
     "verified_payload_files": 36,
     "backupDirectory": "D:\\SteamLibrary\\steamapps\\common\\Nuclear Option\\BepInEx\\NOVR\\dev-deployments\\839af7da21374211a5adfa6477607ad5",
-    "gameProcess": 20724,
-    "captureProcess": 45620,
+    "gameProcess": null,
+    "captureProcess": null,
     "captureSession": "playtest/sessions/20261004T054812075Z-seated-head",
     "waitSeconds": 1800,
     "captureSeconds": 60
+  },
+  "publication_checkpoint": {
+    "repository": "https://github.com/venku122/novr",
+    "branch": "feat/steam-frame-diagnostics",
+    "release": "https://github.com/venku122/novr/releases/tag/steam-frame-dev-20261004",
+    "buildSourceCommit": "a8d2dd3dcc3edf3239329de5ea60b19be856d4e1",
+    "debugBuild": "1a283532226c4ef194b148b6a15e1dad",
+    "cleanBuild": "2fc8dcb85ffd4ce6a8a30d79d12aaed0",
+    "downloadChecksums": "verified",
+    "game": "stopped by user request; no new deployment",
+    "hardware": "eye tracking and compact HUD acceptance pending"
   }
 }
