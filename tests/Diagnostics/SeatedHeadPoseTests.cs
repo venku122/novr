@@ -53,6 +53,9 @@ internal static class SeatedHeadPoseTests
         Near(stable.Position, new Vector3(0, 0, .2f), "Untracked aircraft transition updates only offset");
         stable.SetSeatOffset(new Vector3(float.NaN, 0, 1));
         Near(stable.Position, new Vector3(0, 0, .2f), "Invalid seat offset rejected");
+        stable.UpdateRaw(true, center + Vector3.UnitZ, new Quaternion(float.MaxValue, 0, 0, 1));
+        if (stable.TrackingValid) throw new Exception("Overflowing quaternion magnitude rejected");
+        Near(stable.Position, new Vector3(0, 0, .2f), "Overflow sample cannot poison seat pose");
         Console.WriteLine("PASS: fixed-position yaw, 10000 reacquisition updates, invalid-pose freeze, seated lean/return, shared yaw space and explicit recenter");
     }
 }

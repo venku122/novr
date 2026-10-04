@@ -24,8 +24,9 @@ internal sealed class SeatedHeadPose
 
     public void UpdateRaw(bool valid, Vector3 position, Quaternion rotation)
     {
+        var rotationLength = rotation.LengthSquared();
         TrackingValid = valid && Finite(position.X) && Finite(position.Y) && Finite(position.Z) &&
-            Finite(rotation.X) && Finite(rotation.Y) && Finite(rotation.Z) && Finite(rotation.W) && rotation.LengthSquared() > .0001f;
+            Finite(rotation.X) && Finite(rotation.Y) && Finite(rotation.Z) && Finite(rotation.W) && Finite(rotationLength) && rotationLength > .0001f;
         if (!TrackingValid) return;
         RawPosition = position;
         RawRotation = Quaternion.Normalize(rotation);
