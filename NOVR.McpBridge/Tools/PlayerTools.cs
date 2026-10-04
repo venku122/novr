@@ -52,6 +52,14 @@ public static class PlayerTools
         return sb.ToString();
     }
 
+    [McpTool("get_vr_head_state", "Read-only NOVR cockpit/HMD/seat transform and calibration snapshot. No recenter or configuration changes.")]
+    public static string GetVrHeadState()
+    {
+        var diagnostics = FindType("NOVR.Diagnostics.CockpitDiagnostics");
+        var capture = diagnostics?.GetMethod("CaptureJson", BindingFlags.Public | BindingFlags.Static);
+        return capture?.Invoke(null, null) as string ?? "NOVR cockpit diagnostics unavailable.";
+    }
+
     private static void AppendProperty(StringBuilder sb, Type type, object instance, string propName)
     {
         var prop = type.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);

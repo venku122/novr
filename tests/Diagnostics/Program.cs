@@ -122,3 +122,7 @@ Check(fixedHand.Update(true,true,"Right",0,false,0,false,0,1).Hand == PointerHan
 var bothGrips = new ControllerUiState();
 bothGrips.Update(true,true,"Auto",0,false,0,false,0,0);
 Check(bothGrips.Update(true,true,"Auto",0,false,0,false,1,1).Hand == PointerHand.Right, "simultaneous grips preserve hand ownership");
+
+CameraTrackingTests.Run();
+
+DiagnosticJsonTests.Run();

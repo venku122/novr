@@ -143,7 +143,7 @@ if (NOVRPlugin.LogSource != null)
                 ModConfiguration.Instance.CockpitHeadForwardOffset.Value = f;
                 ModConfiguration.Instance.CockpitHeadRightOffset.Value = r;
             }
-            NOVRHeadsetData.CalibrateTranslation();
+            NOVRHeadsetData.CalibrateTranslation(reason: "aircraft-change");
         }
         CameraStateManager.enableMouseLook = false;
     }

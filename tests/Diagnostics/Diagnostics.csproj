@@ -11,5 +11,8 @@
     <Compile Include="../../NOVR/Diagnostics/CaptureGesture.cs" Link="CaptureGesture.cs" />
     <Compile Include="../../NOVR/Input/ControllerUiState.cs" Link="ControllerUiState.cs" />
     <Compile Include="../../NOVR.SteamVR/FrameModelAssets.cs" Link="FrameModelAssets.cs" />
+    <Compile Include="../../NOVR/VrCamera/StereoCamera.cs" Link="StereoCamera.cs" />
+    <Compile Include="../../NOVR/Diagnostics/DiagnosticJson.cs" Link="DiagnosticJson.cs" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>

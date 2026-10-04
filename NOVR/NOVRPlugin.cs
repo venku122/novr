@@ -47,7 +47,9 @@ public class NOVRPlugin : BaseUnityPlugin
 
     private void TrackingAcquired(XRNodeState obj)
     {
-        NOVRHeadsetData.CalibrateTranslation();
+        // Controller acquisition must not redefine the seated head origin.
+        if (obj.nodeType != XRNode.Head && obj.nodeType != XRNode.CenterEye) return;
+        NOVRHeadsetData.CalibrateTranslation(reason: "head-tracking-acquired");
     }
      
     private void Awake()

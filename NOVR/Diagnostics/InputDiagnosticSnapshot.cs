@@ -16,7 +16,7 @@ namespace NOVR.Diagnostics;
 [Serializable]
 internal sealed class InputDiagnosticSnapshot
 {
-    public int schemaVersion = 1;
+    public int schemaVersion = 2;
     public string timestamp = "";
     public string reason = "";
     public int frame;
@@ -40,6 +40,7 @@ internal sealed class InputDiagnosticSnapshot
     public Vector3 gazeTrackingPosition;
     public Quaternion gazeTrackingRotation;
     public string helmetHudTracking = "";
+    public CockpitSnapshot cockpit = new CockpitSnapshot();
     public UiPointerSnapshot uiPointer = new UiPointerSnapshot();
     public int eyeWidth;
     public int eyeHeight;
@@ -67,6 +68,7 @@ internal sealed class InputDiagnosticSnapshot
             eyeWidth = XRSettings.eyeTextureWidth, eyeHeight = XRSettings.eyeTextureHeight,
             novrBindings = VrControllerInput.GetDiagnosticBindings()
         };
+        snapshot.cockpit = CockpitDiagnostics.Capture();
         snapshot.gazeValid = NOVR.Controllers.EyeGazeInput.TryGetTrackingPose(out snapshot.gazeTrackingPosition, out snapshot.gazeTrackingRotation, out snapshot.gazeStatus);
         snapshot.helmetHudTracking = ModConfiguration.Instance.HelmetHudTracking.Value;
         if (VrUiCursor.Instance != null) snapshot.uiPointer = VrUiCursor.Instance.GetDiagnosticSnapshot();

@@ -7,6 +7,9 @@ namespace NOVR;
 [DefaultExecutionOrder(-100)]
 public class NOVRHeadsetData : NOVRBehaviour
 {
+    public static int CalibrationSequence { get; private set; }
+    public static string LastCalibrationReason { get; private set; } = "not-calibrated";
+
     public static Vector3 TranslationAnchor { get; private set; }
     public static Vector3 Translation { get; private set; }
     public static Vector3 TranslationCalibrationOffset { get; private set; }
@@ -21,8 +24,10 @@ public class NOVRHeadsetData : NOVRBehaviour
         TranslationAnchor = anchor;
     }
 
-    public static void CalibrateTranslation(CalibrationAxes calibrationAxes = CalibrationAxes.All, bool overrideExistingInNonCalibratedAxes = false)
+    public static void CalibrateTranslation(CalibrationAxes calibrationAxes = CalibrationAxes.All, bool overrideExistingInNonCalibratedAxes = false, string reason = "manual")
     {
+        CalibrationSequence++;
+        LastCalibrationReason = reason;
         Vector3 currentError = -GetHeadPosition();
         bool ov = overrideExistingInNonCalibratedAxes;
         TranslationCalibrationOffset = new Vector3(
@@ -49,33 +54,6 @@ public class NOVRHeadsetData : NOVRBehaviour
             (calibrationAxes & CalibrationAxes.Y) != 0 ? currentError.y : ov ? RotationCalibrationOffset.eulerAngles.y : 0,
             (calibrationAxes & CalibrationAxes.Z) != 0 ? currentError.z : ov ? RotationCalibrationOffset.eulerAngles.z : 0
         );
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
-        DisableCameraAutoTracking();
-    }
-
-    private void DisableCameraAutoTracking()
-    {
-        var camera = GetComponent<Camera>();
-        if (!camera) return;
-
-        var cameraTrackingDisablingMethod = UuvrXrDevice.XrDeviceType?.GetMethod("DisableAutoXRCameraTracking");
-
-        if (cameraTrackingDisablingMethod != null)
-        {
-            cameraTrackingDisablingMethod.Invoke(null, new object[] { camera, true });
-        }
-        else
-        {
-            // TODO: use alternative method for disabling tracking.
-            Debug.LogWarning("Failed to find DisableAutoXRCameraTracking method. Using SetStereoViewMatrix, which also prevents Unity from auto-tracking cameras, but can cause other issues.");
-            // TODO: this crashes some games? Example Monster Girl Island. Although that game already comes with VR stuff, dunno if could affect.
-            // camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, camera.worldToCameraMatrix);
-            // camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, camera.worldToCameraMatrix);
-        }
     }
 
     protected override void OnBeforeRender()

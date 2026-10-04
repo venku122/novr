@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.XR;
 
 namespace NOVR.VrCamera;
 
@@ -17,6 +18,9 @@ public class StereoCamera : NOVRBehaviour
     {
         base.Awake();
         ParentCamera = GetComponent<Camera>();
+        // NOVRPoseDriver owns the head pose; overlay cameras inherit it from their parent.
+        // Unity's implicit tracking would apply the HMD pose a second time at render time.
+        if (ParentCamera != null) XRDevice.DisableAutoXRCameraTracking(ParentCamera, true);
     }
     
     private void Start()

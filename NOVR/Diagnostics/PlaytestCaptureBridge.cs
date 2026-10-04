@@ -35,7 +35,7 @@ internal sealed class PlaytestCaptureBridge : MonoBehaviour
             {
                 var directory = Path.Combine(Paths.GameRootPath, "BepInEx", "NOVR", "playtest", "evidence");
                 Directory.CreateDirectory(directory);
-                File.WriteAllText(Path.Combine(directory, _captureId + ".json"), JsonUtility.ToJson(InputDiagnosticSnapshot.Capture("playtest-capture"), true));
+                File.WriteAllText(Path.Combine(directory, _captureId + ".json"), DiagnosticJson.Serialize(InputDiagnosticSnapshot.Capture("playtest-capture")));
                 if (config.PlaytestCaptureScreenshot.Value) ScreenCapture.CaptureScreenshot(Path.Combine(directory, _captureId + ".png"));
                 Publish("start", new CaptureEvidence { telemetry = relative + ".json", screenshot = config.PlaytestCaptureScreenshot.Value ? relative + ".png" : "", log = "BepInEx/LogOutput.log" });
             }
@@ -59,7 +59,7 @@ internal sealed class PlaytestCaptureBridge : MonoBehaviour
             var request = new CaptureRequest { id = Guid.NewGuid().ToString(), captureId = _captureId, timestamp = DateTime.UtcNow.ToString("O"), kind = kind, evidence = evidence };
             var target = Path.Combine(directory, request.id + ".json");
             var temporary = target + ".tmp";
-            File.WriteAllText(temporary, JsonUtility.ToJson(request));
+            File.WriteAllText(temporary, DiagnosticJson.Serialize(request));
             File.Move(temporary, target);
             _requestCount++;
             Debug.Log($"[NOVR playtest] {kind} capture={_captureId}; external helper handles recording. Requests are not recording acknowledgments.");

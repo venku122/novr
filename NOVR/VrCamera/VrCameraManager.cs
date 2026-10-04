@@ -5,6 +5,7 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using System.Collections.Generic;
 using NOVR.GameplayPatches;
 using UnityEngine;
+using UnityEngine.XR;
 using UnityEngine.Rendering.Universal;
 
 namespace NOVR.VrCamera;
@@ -67,6 +68,8 @@ public class VrCameraManager: MonoBehaviour
 
     private void SetUpMainCameraRig(Camera rootCamera)
     {
+        // The game owns this seat/orbit transform. It must never receive implicit HMD motion.
+        XRDevice.DisableAutoXRCameraTracking(rootCamera, true);
         HandleChildCameras(rootCamera);
 
         var existingTrackedCamera = GetTrackedMainCamera(rootCamera.gameObject);

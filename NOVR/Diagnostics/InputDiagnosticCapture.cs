@@ -83,7 +83,7 @@ internal sealed class InputDiagnosticCapture : MonoBehaviour
             var snapshot = InputDiagnosticSnapshot.Capture(reason);
             Directory.CreateDirectory(_sessionDirectory!);
             var filename = Path.Combine(_sessionDirectory!, $"{++_sequence:D5}.json");
-            File.WriteAllText(filename, JsonUtility.ToJson(snapshot, true));
+            File.WriteAllText(filename, DiagnosticJson.Serialize(snapshot));
             _captureCount++;
             if (logSummary)
                 Debug.Log($"[NOVR input] reason={reason} backend={snapshot.backend} runtime={snapshot.runtime} L={snapshot.leftProfile} R={snapshot.rightProfile} xrDevices={snapshot.xrDevices.Length} inputDevices={snapshot.inputSystemDevices.Length} evidence={filename}");
