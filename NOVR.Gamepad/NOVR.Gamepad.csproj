@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework><Nullable>enable</Nullable><LangVersion>10</LangVersion>
+    <NovrAutoDeploy>false</NovrAutoDeploy><CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>$(BuildOutputDir)/gamepad</OutputPath>
+    <GameDeployPath>BepInEx/plugins/NOVR.Gamepad</GameDeployPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Nefarius.ViGEm.Client" Version="[1.21.256]" />
+    <ProjectReference Include="../NOVR/NOVR.csproj" Private="false" />
+    <Content Include="THIRD-PARTY-NOTICES.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="KeepOnlyGamepadRuntimeDependency" BeforeTargets="_CopyFilesMarkedCopyLocal">
+    <!-- Project-reference transitive copies must not redistribute BepInEx,
+         Unity, or other NOVR assemblies alongside this optional companion. -->
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Filename)' != 'Nefarius.ViGEm.Client'" />
+    </ItemGroup>
+  </Target>
+</Project>

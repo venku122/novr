@@ -20,6 +20,29 @@ public class VrUiCursor: NOVRBehaviour
     public bool IsActive => _cursor != null && _cursor.activeSelf;
     public Vector3 CursorPosition => _cursor != null ? _cursor.transform.position : Vector3.zero;
 
+    // Menu/View stay with NOVR while its controller navigation runs, avoiding
+    // the same physical press toggling pause through two input paths.
+    public static bool OwnsControllerNavigation => Instance != null && Instance.isActiveAndEnabled &&
+        Application.isFocused && Instance._controllerModeActive;
+
+    // Optional gamepad bridge consumes cached UI routing; no raycast or allocation here.
+    public static bool TryGetGamepadUiOwnership(out bool left, out bool right)
+    {
+        left = right = false;
+        var cursor = Instance;
+        if (cursor == null || !cursor.isActiveAndEnabled || !Application.isFocused || !cursor._controllerModeActive) return false;
+        var heldInteraction = cursor._pointerPress != null || cursor._pointerDrag != null;
+        var interactiveHover = cursor._hasActiveCanvas && cursor.IsActive && !cursor._isOffscreen &&
+            cursor._hovered != null && cursor._cursorOverInteractive;
+        // Dynamic map icons receive direct pointer activation rather than Selectable events.
+        var mapInteraction = cursor._hasActiveCanvas && !cursor._isOffscreen && cursor._activeCanvas != null &&
+            cursor._activeCanvas.name == "MapCanvas" && DynamicMap.mapMaximized;
+        if (!heldInteraction && !interactiveHover && !mapInteraction) return false;
+        left = cursor._pointerSourceHand == NOVR.Controllers.PointerHand.Left;
+        right = cursor._pointerSourceHand == NOVR.Controllers.PointerHand.Right;
+        return left || right;
+    }
+
     // Snapshot only: uses the current cached hit and performs no raycast or hierarchy scan.
     internal NOVR.Diagnostics.UiPointerSnapshot GetDiagnosticSnapshot()
     {
@@ -250,7 +273,7 @@ public class VrUiCursor: NOVRBehaviour
             NOVRPlugin.LogSource.LogMessage($"[VrUiCursor] Start id={_instanceId}");
     }
 
-    // Head/camera pose drivers run at the default before-render order (0).
+    // Head and camera pose drivers refresh before this visual callback (orders 100/150).
     [BeforeRenderOrder(200)]
     protected override void OnBeforeRender()
     {

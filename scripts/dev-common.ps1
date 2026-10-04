@@ -30,7 +30,7 @@ function Assert-NovrSafePath([string]$Path) {
 }
 
 function Resolve-NovrPayloadPath([string]$Root, [string]$RelativePath) {
-    if ($RelativePath -notmatch '^BepInEx/(plugins|patchers)/NOVR/[^:]+$' -or
+    if ($RelativePath -notmatch '^BepInEx/(?:(?:plugins|patchers)/NOVR|plugins/NOVR\.Gamepad)/[^:]+$' -or
         $RelativePath -match '\\|(^|/)\.\.?(/|$)' -or [IO.Path]::IsPathRooted($RelativePath)) {
         throw "Unsafe NOVR payload path: $RelativePath"
     }

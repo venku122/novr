@@ -16,6 +16,10 @@ try {
     Set-Content "$stage/game/BepInEx/patchers/NOVR/NOVR.Patcher.dll" 'new-patcher'
     Set-Content "$game/BepInEx/plugins/NOVR/NOVR.dll" 'old-plugin'
     Set-Content "$game/BepInEx/plugins/NOVR/unrelated.dll" 'preserve'
+    New-Item -ItemType Directory -Force "$stage/game/BepInEx/plugins/NOVR.Gamepad" | Out-Null
+    Set-Content "$stage/game/BepInEx/plugins/NOVR.Gamepad/NOVR.Gamepad.dll" 'optional-gamepad'
+    MustFail { Resolve-NovrPayloadPath $game 'BepInEx/plugins/Other/Other.dll' } 'Unrelated plugin path refused'
+    MustFail { Resolve-NovrPayloadPath $game 'BepInEx/patchers/NOVR.Gamepad/Other.dll' } 'Gamepad patcher path refused'
     New-NovrManifest $stage 'test-sha' 'test-diff' | Out-Null
     $original = (Get-FileHash "$game/BepInEx/plugins/NOVR/NOVR.dll").Hash
 
@@ -52,6 +56,7 @@ try {
     New-NovrManifest $stage 'test-sha' 'test-diff' | Out-Null
     $receipt = Invoke-NovrDeploy $stage $game
     Assert ($receipt.status -eq 'deployed') 'Deployment receipt'
+    Assert (Test-Path "$game/BepInEx/plugins/NOVR.Gamepad/NOVR.Gamepad.dll") 'Optional gamepad deployed'
     Assert ((Get-Content "$game/BepInEx/plugins/NOVR/NOVR.dll" -Raw).Trim() -eq 'tampered') 'Exact staged payload installed'
     Assert ((Get-Content "$game/BepInEx/plugins/NOVR/unrelated.dll" -Raw).Trim() -eq 'preserve') 'Extra plugin preserved'
     $firstDeployedHash = (Get-FileHash "$game/BepInEx/plugins/NOVR/NOVR.dll").Hash
@@ -77,6 +82,7 @@ try {
     Invoke-NovrRollback $game | Out-Null
     Assert ((Get-FileHash "$game/BepInEx/plugins/NOVR/NOVR.dll").Hash -eq $original) 'Rollback restores exact old plugin'
     Assert (-not (Test-Path "$game/BepInEx/patchers/NOVR/NOVR.Patcher.dll")) 'Rollback removes newly introduced files'
+    Assert (-not (Test-Path "$game/BepInEx/plugins/NOVR.Gamepad/NOVR.Gamepad.dll")) 'Rollback removes new optional gamepad'
     Assert (Test-Path "$game/BepInEx/plugins/NOVR/unrelated.dll") 'Rollback preserves unrelated files'
     Write-Output 'PASS: stopped-game gates, payload integrity, path traversal, staging/metadata junction refusal, deployment, rollback and unrelated-file preservation'
 } finally {

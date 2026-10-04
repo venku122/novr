@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net8.0</TargetFramework><OutputType>Exe</OutputType><SkipNuclearOptionReferences>true</SkipNuclearOptionReferences><NovrAutoDeploy>false</NovrAutoDeploy><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup><Compile Include="../../NOVR.Gamepad/GamepadPolicy.cs" Link="GamepadPolicy.cs" /></ItemGroup>
+</Project>

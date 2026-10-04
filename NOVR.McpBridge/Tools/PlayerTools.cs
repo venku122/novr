@@ -60,6 +60,14 @@ public static class PlayerTools
         return capture?.Invoke(null, null) as string ?? "NOVR cockpit diagnostics unavailable.";
     }
 
+    [McpTool("get_gamepad_state", "Read-only Rewired controller assignments/backend and XInput/Steam Input slot values. Does not change input settings or create devices.")]
+    public static string GetGamepadState()
+    {
+        var diagnostics = FindType("NOVR.Diagnostics.GamepadInputDiagnostics");
+        var capture = diagnostics?.GetMethod("CaptureJson", BindingFlags.Public | BindingFlags.Static);
+        return capture?.Invoke(null, null) as string ?? "NOVR gamepad diagnostics unavailable.";
+    }
+
     private static void AppendProperty(StringBuilder sb, Type type, object instance, string propName)
     {
         var prop = type.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
