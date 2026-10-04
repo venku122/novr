@@ -20,13 +20,24 @@ try {
     Set-Content "$stage/game/BepInEx/plugins/NOVR.Gamepad/NOVR.Gamepad.dll" 'optional-gamepad'
     MustFail { Resolve-NovrPayloadPath $game 'BepInEx/plugins/Other/Other.dll' } 'Unrelated plugin path refused'
     MustFail { Resolve-NovrPayloadPath $game 'BepInEx/patchers/NOVR.Gamepad/Other.dll' } 'Gamepad patcher path refused'
+    New-Item -ItemType Directory -Force "$stage/game/NuclearOption_Data/Managed", "$stage/game/BepInEx/patchers/NOVR/CopyToGame/Data/Managed" | Out-Null
+    foreach ($assembly in @('Unity.XR.OpenXR.dll', 'Unity.XR.Management.dll')) {
+        Set-Content "$stage/game/NuclearOption_Data/Managed/$assembly" ('new-' + $assembly)
+        Set-Content "$stage/game/BepInEx/patchers/NOVR/CopyToGame/Data/Managed/$assembly" ('new-' + $assembly)
+        Set-Content "$game/NuclearOption_Data/Managed/$assembly" ('old-' + $assembly)
+    }
+    Set-Content "$game/NuclearOption_Data/Managed/Assembly-CSharp.dll" 'preserve-game'
+    MustFail { Resolve-NovrPayloadPath $game 'NuclearOption_Data/Managed/Assembly-CSharp.dll' } 'Unrelated game assemblies refused'
+    MustFail { Resolve-NovrPayloadPath $game 'NuclearOption_Data/Managed/UnityEngine.InputSystem.dll' } 'InputSystem replacement refused'
     New-NovrManifest $stage 'test-sha' 'test-diff' | Out-Null
+    $originalXr = (Get-FileHash "$game/NuclearOption_Data/Managed/Unity.XR.OpenXR.dll").Hash
     $original = (Get-FileHash "$game/BepInEx/plugins/NOVR/NOVR.dll").Hash
 
     # Only this test's command lookup is replaced, never production script arguments.
     function Get-Process { param($Name, $ErrorAction) [pscustomobject]@{ ProcessName = 'NuclearOption'; Id = 1 } }
     MustFail { Invoke-NovrDeploy $stage $game } 'Running game must refuse deployment'
     Assert ((Get-FileHash "$game/BepInEx/plugins/NOVR/NOVR.dll").Hash -eq $original) 'Running-game refusal must not write plugin'
+    Assert ((Get-FileHash "$game/NuclearOption_Data/Managed/Unity.XR.OpenXR.dll").Hash -eq $originalXr) 'Running refusal preserves managed XR'
     function Get-Process { param($Name, $ErrorAction) }
 
     New-Item -ItemType Junction -Path "$fixture/stage-link" -Target $game | Out-Null
@@ -54,8 +65,14 @@ try {
     $manifest | ConvertTo-Json -Depth 8 | Set-Content "$stage/build.json"
     MustFail { Invoke-NovrDeploy $stage $game } 'Path traversal must refuse deployment'
     New-NovrManifest $stage 'test-sha' 'test-diff' | Out-Null
+    Set-Content "$stage/game/NuclearOption_Data/Managed/Unity.XR.OpenXR.dll" 'mismatched-XR'
+    MustFail { New-NovrManifest $stage 'test-sha' 'test-diff' } 'Managed XR must match patcher payload'
+    Copy-Item "$stage/game/BepInEx/patchers/NOVR/CopyToGame/Data/Managed/Unity.XR.OpenXR.dll" "$stage/game/NuclearOption_Data/Managed/Unity.XR.OpenXR.dll" -Force
+    New-NovrManifest $stage 'test-sha' 'test-diff' | Out-Null
     $receipt = Invoke-NovrDeploy $stage $game
     Assert ($receipt.status -eq 'deployed') 'Deployment receipt'
+    Assert ((Get-Content "$game/NuclearOption_Data/Managed/Unity.XR.OpenXR.dll" -Raw).Trim() -eq 'new-Unity.XR.OpenXR.dll') 'Managed XR installed before launch'
+    Assert ((Get-Content "$game/NuclearOption_Data/Managed/Assembly-CSharp.dll" -Raw).Trim() -eq 'preserve-game') 'Game assembly preserved'
     Assert (Test-Path "$game/BepInEx/plugins/NOVR.Gamepad/NOVR.Gamepad.dll") 'Optional gamepad deployed'
     Assert ((Get-Content "$game/BepInEx/plugins/NOVR/NOVR.dll" -Raw).Trim() -eq 'tampered') 'Exact staged payload installed'
     Assert ((Get-Content "$game/BepInEx/plugins/NOVR/unrelated.dll" -Raw).Trim() -eq 'preserve') 'Extra plugin preserved'
@@ -81,6 +98,8 @@ try {
     function Get-Process { param($Name, $ErrorAction) }
     Invoke-NovrRollback $game | Out-Null
     Assert ((Get-FileHash "$game/BepInEx/plugins/NOVR/NOVR.dll").Hash -eq $original) 'Rollback restores exact old plugin'
+    Assert ((Get-FileHash "$game/NuclearOption_Data/Managed/Unity.XR.OpenXR.dll").Hash -eq $originalXr) 'Rollback restores exact old managed XR'
+    Assert ((Get-Content "$game/NuclearOption_Data/Managed/Unity.XR.Management.dll" -Raw).Trim() -eq 'old-Unity.XR.Management.dll') 'Rollback restores old XR Management'
     Assert (-not (Test-Path "$game/BepInEx/patchers/NOVR/NOVR.Patcher.dll")) 'Rollback removes newly introduced files'
     Assert (-not (Test-Path "$game/BepInEx/plugins/NOVR.Gamepad/NOVR.Gamepad.dll")) 'Rollback removes new optional gamepad'
     Assert (Test-Path "$game/BepInEx/plugins/NOVR/unrelated.dll") 'Rollback preserves unrelated files'

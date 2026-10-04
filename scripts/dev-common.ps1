@@ -30,7 +30,7 @@ function Assert-NovrSafePath([string]$Path) {
 }
 
 function Resolve-NovrPayloadPath([string]$Root, [string]$RelativePath) {
-    if ($RelativePath -notmatch '^BepInEx/(?:(?:plugins|patchers)/NOVR|plugins/NOVR\.Gamepad)/[^:]+$' -or
+    if ($RelativePath -notmatch '^(?:BepInEx/(?:(?:plugins|patchers)/NOVR|plugins/NOVR\.Gamepad)/[^:]+|NuclearOption_Data/Managed/Unity\.XR\.(?:OpenXR|Management)\.dll)$' -or
         $RelativePath -match '\\|(^|/)\.\.?(/|$)' -or [IO.Path]::IsPathRooted($RelativePath)) {
         throw "Unsafe NOVR payload path: $RelativePath"
     }
@@ -51,6 +51,19 @@ function Write-NovrJson([string]$Path, $Value) {
     Move-Item -LiteralPath $temporary -Destination $Path -Force
 }
 
+function Assert-NovrManagedXrConsistency($Files) {
+    foreach ($entry in $Files) {
+        if ($entry.path -match '^NuclearOption_Data/Managed/(Unity\.XR\.(?:OpenXR|Management)\.dll)$') {
+            $assembly = $Matches[1]
+            $copyPath = "BepInEx/patchers/NOVR/CopyToGame/Data/Managed/$assembly"
+            $copy = @($Files | Where-Object path -eq $copyPath)
+            if ($copy.Count -ne 1 -or $copy[0].sha256 -ne $entry.sha256) {
+                throw "Managed XR must match its staged CopyToGame payload: $assembly"
+            }
+        }
+    }
+}
+
 function New-NovrManifest([string]$StageDirectory, [string]$Commit, [string]$DiffHash) {
     $root = [IO.Path]::GetFullPath((Join-Path $StageDirectory 'game')).TrimEnd('\', '/')
     $files = @()
@@ -63,6 +76,7 @@ function New-NovrManifest([string]$StageDirectory, [string]$Commit, [string]$Dif
         -not ($files | Where-Object path -eq 'BepInEx/patchers/NOVR/NOVR.Patcher.dll')) {
         throw 'Stage is missing NOVR.dll or NOVR.Patcher.dll.'
     }
+    Assert-NovrManagedXrConsistency $files
     $manifest = [pscustomobject]@{
         schemaVersion = 1; status = 'succeeded'; buildId = [Guid]::NewGuid().ToString('N')
         commit = $Commit; sourceSnapshotSha256 = $DiffHash; createdAt = [DateTime]::UtcNow.ToString('O'); files = $files
@@ -85,6 +99,7 @@ function Read-NovrManifest([string]$StageDirectory) {
     }
     if (-not $seen.ContainsKey('BepInEx/plugins/NOVR/NOVR.dll') -or
         -not $seen.ContainsKey('BepInEx/patchers/NOVR/NOVR.Patcher.dll')) { throw 'Stage missing required runtime files.' }
+    Assert-NovrManagedXrConsistency $manifest.files
     return $manifest
 }
 

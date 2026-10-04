@@ -20,6 +20,15 @@ try {
     }
     $menuSession = Get-Content (Join-Path $menuOutput 'session.json') -Raw | ConvertFrom-Json
     if (-not $refused -or $menuSession.sampleCount -ne 0 -or (Test-Path (Join-Path $menuOutput 'head.jsonl'))) { throw 'Front-end default cockpit enum must not produce cockpit evidence.' }
+    $startupOutput = Join-Path $testRoot 'startup-gaze'
+    try { & $scriptPath -OutputDirectory $startupOutput -WaitForCockpitSeconds 1 -CaptureSeconds 1 -IncludeGazeHud } catch {
+        if ($_.Exception.Message -notlike 'No cockpit evidence captured*') { throw }
+    }
+    $startup = Get-Content (Join-Path $startupOutput 'session.json') -Raw | ConvertFrom-Json
+    if ($startup.startupGazeSamples -lt 1 -or $startup.gazeHudSamples -ne 0 -or $startup.sampleCount -ne 0 -or
+        -not (Test-Path (Join-Path $startupOutput 'startup-gaze-hud.jsonl')) -or (Test-Path (Join-Path $startupOutput 'head.jsonl'))) {
+        throw 'Startup gaze must be captured separately and never counted as cockpit evidence.'
+    }
     $global:NovrHeadCaptureTestFixture = '{"cameraMode":"cockpit","seatReference":{"available":true},"gameCameraRoot":{"available":true},"rawHeadPosition":{"x":0.1,"y":1.2,"z":0.3}}'
     $cockpitOutput = Join-Path $testRoot 'cockpit'
     & $scriptPath -OutputDirectory $cockpitOutput -WaitForCockpitSeconds 1 -CaptureSeconds 1
