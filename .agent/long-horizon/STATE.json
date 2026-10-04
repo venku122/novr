@@ -6,7 +6,7 @@
     "objective": "Prioritize actual Steam Frame controller UI and HOTAS coexistence, optional eye gaze and head-following helmet HUD; retain safe development loop and evidence-based hardware acceptance.",
     "status": "active",
     "created_at": "2026-10-03T18:10:32-05:00",
-    "updated_at": "2026-10-04T04:22:24.509322+00:00"
+    "updated_at": "2026-10-04T04:51:14.738087+00:00"
   },
   "control": {
     "mode": "single-executor",
@@ -360,9 +360,9 @@
         "auditor": null,
         "evidence_ids": []
       },
-      "checkpoint": "65f98fa46f649ce6740c2dcb6a96a1adc289889c",
+      "checkpoint": "fac0f6456b58210175678bd765bce954e004c247",
       "notes": [
-        "Final actual-reference Windows stage and pure policy/placement/gaze/controller/camera/safety checks passed; 34/34 deployed hashes verified; actual gaze and rendered HUD headset review pending."
+        "User first headset review found defects; native XR/InputSystem type conflict, status layout/notification owners and auto-reference overwrite identified. Revised build deployed, physical retest pending."
       ]
     },
     {
@@ -388,9 +388,9 @@
         "auditor": null,
         "evidence_ids": []
       },
-      "checkpoint": "65f98fa46f649ce6740c2dcb6a96a1adc289889c",
+      "checkpoint": "fac0f6456b58210175678bd765bce954e004c247",
       "notes": [
-        "Final actual-reference Windows stage and pure policy/placement/gaze/controller/camera/safety checks passed; 34/34 deployed hashes verified; actual gaze and rendered HUD headset review pending."
+        "User first headset review found defects; native XR/InputSystem type conflict, status layout/notification owners and auto-reference overwrite identified. Revised build deployed, physical retest pending."
       ]
     }
   ],
@@ -559,28 +559,28 @@
   "decisions": [],
   "blockers": [],
   "next_action": {
-    "task_id": "FRAME-EYE",
-    "reason": "Review native gaze cue and Smart helmet status in actual cockpit; collect paired read-only telemetry. Existing centered camera and controller setting accepted by completed-mission user report."
+    "task_id": "FRAME-HUD",
+    "reason": "Recenter comfortably seated, lean forward during spawn then return neutral; verify readable lower helmet HUD, head-following notifications, and actual native gaze source with paired telemetry."
   },
   "termination": {
     "condition": null,
     "summary": "Controller operation, mode setting and centered mission accepted. New gaze/HUD implementation awaiting actual headset review; original full development-loop mission remains incomplete."
   },
   "artifacts": {
-    "stage_directory": "staging/20261004T042011924Z-438cb964",
-    "build_id": "f3c94cdc606f484d9b87ee92b3d8571e",
-    "code_commit": "65f98fa46f649ce6740c2dcb6a96a1adc289889c",
-    "hardware_status": "User accepted controller mode setting and centered head tracking after completing a mission. Native eye cueing and Smart HUD hardware review pending.",
-    "live_deployment": "65f98fa installed after stopped-game check; 34/34 hashes match. Native eye gaze enabled for review, Helmet tracking Head; previous controller mode retained.",
+    "stage_directory": "staging/20261004T044721799Z-0fb6d9c0",
+    "build_id": "c1ce53d7ed3d40b1a7e461fe851d8003",
+    "code_commit": "fac0f6456b58210175678bd765bce954e004c247",
+    "hardware_status": "User accepted prior centered mission/controller mode; latest HUD review reports high status, fixed notifications, missing eye cue and aft seat. Source causes addressed; new actual headset retest pending.",
+    "live_deployment": "Stopped-game deploy; 34/34 payload hashes verified; 530 source snapshot hashes verified; managed XR identical; no config/HOTAS/graphics/privacy changes.",
     "playtest_preparation": "synthetic-tests-pass; actual-headset-pending",
     "controller_candidate": "User confirms controllers, grip switching, models and movement work great on 0c266d9; seated cockpit origin now fails.",
-    "gaze_hud": "Native OpenXR gaze extension enabled in live process23300; requested true but EyeGaze device unavailable (sharing/calibration or input device creation remains unverified). Smart/Head active; actual cockpit review pending.",
+    "gaze_hud": "Native gaze fallback and lowered/readable HUD+head-following notifications deployed; startup extension enabled but native eye device absent, actual headset acceptance pending.",
     "baseline_launch_process": 37332,
     "baseline_launcher_session": 99894,
     "baseline_snapshots": 456,
     "baseline_evidence_summary": "evidence/live-baseline-summary.json",
     "baseline_session": "playtest/sessions/20261004T011518081Z-steam-frame-baseline",
-    "candidate_launcher_session": 68136,
+    "candidate_launcher_session": 29458,
     "controller_hardware_acceptance": "2026-10-03 user report: controllers work great, switching worked great, models great, movement great. Formal reconnect/drag/scroll/HOTAS matrix retains untested checks.",
     "controller_session": "playtest/sessions/20261004T014111522Z-steam-frame-baseline (407 input snapshots, run exited)",
     "head_capture_session": 57397,
@@ -588,8 +588,8 @@
     "head_capture_status": "Completed 98 actual cockpit samples on prior a7d82f4 candidate. Valid InputSystem/centerEye; calibration sequences 2/3, manual and aircraft-change only. Physical cockpit stability still requires user report. Latest user confirms head stayed centered for a completed mission.",
     "gamepad": "Previously actual game detected assigned XInput Gamepad 1 alongside HOTAS. New main config Controller Mode UiHotas(default)/UiGamepad controlled live by VR UI Settings; physical switch acceptance pending. Latest user accepted in-headset setting; exhaustive reconnect/cleanup matrix remains pending.",
     "controller_mode_runtime": "Main config persisted UiHotas; new process 36096, companion loaded without bus-connect log and Windows PnP has no present Xbox 360 endpoint. Read-only game discovery still exposes Steam-associated XInput slot0 (handle32176874, unknown type), so physical UI-only no-flight behavior must be tested; do not infer all gamepad entries disappear or modify Steam settings without evidence.",
-    "gaze_hud_capture_session": 15705,
-    "gaze_hud_evidence_directory": "playtest/sessions/20261004T042133680Z-seated-head",
-    "gaze_hud_runtime_process": 23300
+    "gaze_hud_capture_session": 10872,
+    "gaze_hud_evidence_directory": "playtest/sessions/20261004T044900065Z-seated-head",
+    "gaze_hud_runtime_process": 55468
   }
 }

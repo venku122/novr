@@ -57,3 +57,7 @@ Current user acceptance: controller mode setting worked, head tracking stayed ce
 - [x] Native combined OpenXR gaze cueing and Smart helmet status implementation prepared.
 - [ ] Eye-directed cue/Select, sharing fallback, Smart forward/away/down placement and numeric visor visibility headset review.
 Review: docs/development/frame-gaze-hud-review.md.
+
+- [x] Diagnose86sample HUD/gaze/seat feedback: auto-reference overwrite, PoseControl collision, inherited high status and fixed notification owners.
+- [x] Build/deploy revised stable seat reference, native XR gaze fallback, lower/larger HUD and notification follower with tested lifecycle.
+- [ ] Physical retest: spawn lean/neutral seat, readable status, kill feed/chat/mission/rank tracking, actual eye cue selection.
