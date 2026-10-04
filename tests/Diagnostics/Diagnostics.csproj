@@ -8,5 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../NOVR/Diagnostics/DiagnosticCapturePolicy.cs" Link="DiagnosticCapturePolicy.cs" />
+    <Compile Include="../../NOVR/Diagnostics/CaptureGesture.cs" Link="CaptureGesture.cs" />
   </ItemGroup>
 </Project>

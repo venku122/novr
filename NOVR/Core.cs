@@ -89,6 +89,8 @@ if (NOVRPlugin.LogSource != null)
         _vrTogglerManager = new VrTogglerManager();
         if (Diagnostics.DiagnosticCapturePolicy.Parse(ModConfiguration.Instance.RawInputDiagnosticMode.Value) != Diagnostics.DiagnosticMode.Off)
             gameObject.AddComponent<Diagnostics.InputDiagnosticCapture>();
+        if (ModConfiguration.Instance.EnablePlaytestCapture.Value)
+            gameObject.AddComponent<Diagnostics.PlaytestCaptureBridge>();
         
     }
 

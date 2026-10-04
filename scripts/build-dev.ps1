@@ -1,7 +1,8 @@
 param(
     [string]$GameDirectory = $env:NUCLEAR_OPTION_GAME_DIR,
     [string]$StageDirectory,
-    [string]$DotNet = 'dotnet'
+    [string]$DotNet = 'dotnet',
+    [string]$NodeExecutable = $env:NOVR_NODE_EXECUTABLE
 )
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/dev-common.ps1"
@@ -56,6 +57,21 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Diagnostic policy tests failed.' }
     & "$repo/tests/deployment-safety.ps1"
     & "$repo/tests/launch-safety.ps1"
+    $playtestTestStatus = 'skipped: optional Windows Node not available'
+    if (-not $NodeExecutable) {
+        $nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
+        if ($nodeCommand) { $NodeExecutable = $nodeCommand.Source }
+    }
+    if ($NodeExecutable) {
+        $compiler = Join-Path $repo 'tools/vr-playtest/node_modules/typescript/bin/tsc'
+        if (-not (Test-Path -LiteralPath $compiler)) { throw 'Run npm ci --ignore-scripts in tools/vr-playtest before building its optional tests.' }
+        & $NodeExecutable $compiler -p (Join-Path $repo 'tools/vr-playtest/tsconfig.json')
+        if ($LASTEXITCODE -ne 0) { throw 'Playtest TypeScript compilation failed.' }
+        & $NodeExecutable --test 'tools/vr-playtest/dist/test/*.test.js' 2>&1 | Tee-Object -FilePath (Join-Path $StageDirectory 'playtest-tests.txt')
+        if ($LASTEXITCODE -ne 0) { throw 'Playtest tests failed; stage is not deployable.' }
+        $playtestTestStatus = 'passed; Windows synthetic audio fixture runs only when NOVR_TEST_WINDOWS_AUDIO=1'
+    } else { Write-Warning $playtestTestStatus }
+    Write-NovrJson (Join-Path $StageDirectory 'test-summary.json') ([pscustomobject]@{ runtimePolicyAndGesture = 'passed'; deploymentSafety = 'passed'; launchSafety = 'passed (mocked)'; playtest = $playtestTestStatus; hardware = 'not-tested' })
     $pluginSource = Get-Content (Join-Path $repo 'NOVR/NOVRPlugin.cs') -Raw
     if ($pluginSource -notmatch '"NOVR",\s*"([^"]+)"') { throw 'Cannot read NOVR plugin version.' }
     Set-Content (Join-Path $StageDirectory 'game/BepInEx/plugins/NOVR/version.txt') ($Matches[1] + '-dev+' + $commit.Trim().Substring(0, 12) + '-diagnostics') -Encoding ASCII

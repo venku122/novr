@@ -27,6 +27,9 @@ public class ModConfiguration
     public readonly ConfigEntry<bool> VerboseDiagnostics;
     public readonly ConfigEntry<string> RawInputDiagnosticMode;
     public readonly ConfigEntry<KeyCode> RawInputSnapshotShortcut;
+    public readonly ConfigEntry<bool> EnablePlaytestCapture;
+    public readonly ConfigEntry<KeyCode> PlaytestCaptureShortcut;
+    public readonly ConfigEntry<bool> PlaytestCaptureScreenshot;
     public readonly ConfigEntry<float> CockpitHeadForwardOffset;
     public readonly ConfigEntry<float> CockpitHeadRightOffset;
     public readonly ConfigEntry<KeyCode> RecenterShortcut;
@@ -123,6 +126,16 @@ public class ModConfiguration
         RawInputSnapshotShortcut = config.Bind(
             "Diagnostics", "Raw Input Snapshot Shortcut", KeyCode.F10,
             "Capture a read-only XR/InputSystem snapshot when raw input diagnostics are enabled. Can be mapped from an unused HOTAS button externally.");
+
+        EnablePlaytestCapture = config.Bind(
+            "Playtest", "Enable Capture", false,
+            "Send bounded capture-only requests to the external tools/vr-playtest service. Disabled by default; restart after enabling. No audio, speech recognition or AI runs in Unity.");
+        PlaytestCaptureShortcut = config.Bind(
+            "Playtest", "Capture Shortcut", KeyCode.None,
+            "Hold an unused keyboard or legacy joystick KeyCode to record one observation, release to stop. None disables capture. Does not consume or remap flight controls; choose a key/button unused by flight controls. No motion-controller bindings are changed.");
+        PlaytestCaptureScreenshot = config.Bind(
+            "Playtest", "Capture Screenshot", true,
+            "Request a game-rendered screenshot once per observation, not continuous video. At most 124 captures and 250 requests per game process.");
 
         VerboseDiagnostics = config.Bind(
             "Diagnostics",

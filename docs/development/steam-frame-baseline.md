@@ -47,7 +47,7 @@ Session mode samples at up to 10 Hz for the first 60 seconds after startup, capp
 
 1. Connect HOTAS, mouse and keyboard. Turn on both Frame controllers and stream through SteamVR. Have the headset ready before launch.
 2. Run `./scripts/launch-dev.ps1`. This launches Steam app 2168680 using NOVR's existing OpenXR path, tails BepInEx logs and collects the evidence when the game exits. `-Attach` watches an already running game. Actual Steam/headset launch remains unverified until this test.
-3. During the first minute, move each controller separately. Hold each trigger for two seconds; release. Move each thumbstick fully in X/Y, click it, squeeze each grip, press each available face/shoulder/menu/view control, and touch controls where supported. State aloud which hand/control you test if taking your own optional recording; the voice capture subsystem is not implemented yet.
+3. During the first minute, move each controller separately. Hold each trigger for two seconds; release. Move each thumbstick fully in X/Y, click it, squeeze each grip, press each available face/shoulder/menu/view control, and touch controls where supported. State aloud which hand/control you test if taking your own optional recording; leave the new optional playtest capture bridge off for this original baseline; its live headset acceptance is still pending.
 4. Attempt to point at a front-end menu button and select it. Record whether a ray/cursor/hover/click appears, separately. Confirm mouse and keyboard fallback still work. Press F10 for a snapshot while the failure is visible.
 5. Disconnect/reconnect one controller and press F10 after reconnect. Open/close the SteamVR dashboard and press F10 again. Keep the other controller powered on for this part.
 6. Enter the Revoker cockpit if practical. Confirm HOTAS still flies the aircraft. Describe the aft/clipping problem, and take a normal Steam screenshot if useful. This build records aircraft and input/render data; complete camera/seat transform telemetry is pending M6.
@@ -59,3 +59,8 @@ Send Codex the collected session path and the observed ray/hover/click results. 
 ## Acceptance boundary
 
 Automated tests cover diagnostic limits and build/deploy safety. Actual controller pointing, menu operation, flight coexistence, reconnect and headset performance are not yet verified. Voice capture, full camera/UI telemetry, Codex orchestration and the complete iteration loop remain queued behind the relevant evidence gates. This checkpoint does not claim the project is complete.
+
+
+## Separate optional voice capture test after the baseline
+
+See `tools/vr-playtest/README.md` for the helper setup. Start the Windows Node helper before the game, select the actual Steam Streaming Microphone, and enable only the `[Playtest]` capture shortcut using an unused key/button. Hold for one short note, speak the cockpit-clipping observation, and release. Repeat immediately while the first transcript is being processed. Exit the game and quit the helper. Return its SESSION directory with two observations, WAVs/transcripts, complete PNGs, fresh telemetry and log tails, plus any missing/error status. Confirm the shortcut did not affect HOTAS flight controls. Restore capture to false/None afterward. This tests the capture bridge; full camera/origin/UI transform telemetry and Codex execution are later gates.
