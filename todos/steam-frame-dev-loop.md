@@ -65,3 +65,8 @@ Review: docs/development/frame-gaze-hud-review.md.
 - [x] VR UI SETTINGS pause-menu entry and shared in-mission overlay built/reviewed/staged.
 - [x] Install pause settings after explicitly authorized clean game exit and relaunch.
 - [ ] Verify pause→settings→back→resume and persisted settings in headset.
+
+- [x] User accepted mission pause VR UI settings, killfeed/level-up following, seated position (latest feedback).
+- [x] Compact peripheral minimized-map/Smart status candidate built, safely deployed with managed XR and rollback.
+- [x] EyeGaze common-child adapter for both native PoseControl implementations; bounded startup inventory capture.
+- [ ] Physical Compact HUD/minimap/full-map interaction and eye-directed Select acceptance on build37daa10fa0ce4b7b8b6e910d85d9bc3f.

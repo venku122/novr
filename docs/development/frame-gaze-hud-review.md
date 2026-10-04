@@ -46,3 +46,11 @@ Follow-up gaze check: the native XR device is now read even if Unity InputSystem
 Follow-up HUD layout: helmet weapon/status moves below the sightline with larger text scale independent of the aircraft canvas. Speed/altitude sit just below center and bearing below those; aircraft-only layout is restored exactly when selected. In Smart/Helmet, MessageUI (kill feed/mission/chat) and each spawned KillDisplay (rank/new-aircraft/credit) follow the head independently of Smart status being forward or off-axis. Flight-direction symbols and gameplay canvas remain in their existing coordinates.
 
 Retest sequence: comfortably seated, recenter once; enter a mission while briefly leaning forward then return neutral. Confirm no automatic calibrationSequence change at aircraft spawn. Look sideways and down, check status readable below center, trigger a rank/credit notification and inspect chat/kill feed. Hold head still and move eyes between visible contacts; report gaze status/source if the cue still stays head-directed.
+
+## Compact HUD / native pose-layout retest
+
+Pause settings, notifications and seated position are accepted by the tester. The next candidate reads either Unity native pose implementation without replacing global controller layouts; installs matching managed XR before game launch, with rollback. Verify actual tracked gaze and eye-directed normal Select; registration alone is not acceptance.
+
+Smart now defaults **Compact**: weapon and speed/altitude/bearing form a lower-right peripheral cluster, with secondary status retaining aircraft placement. The minimized map has an independent nominal 12-degree size, left/down placement and native geographic coverage. **VR UI SETTINGS → PERIPHERAL HUD** adjusts map angular size (6–22), status scale and Compact/Full detail during the mission. Full tactical map should retain its native parent, size, zoom and input; open/close it and click a point as a regression check. Killfeed/level-up, head/seat reference and flight inputs retain their accepted paths.
+
+For this run, evidence waits up to30minutes for a real cockpit, then captures60seconds of paired head/gaze/HUD. Separate startup gaze samples every5seconds are labeled startup evidence and never count as cockpit samples.
