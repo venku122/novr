@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.XR;
 using UnityEngine.XR.OpenXR;
 using UnityEngine.XR.OpenXR.Features.Interactions;
+using UnityEngine.XR.OpenXR.Input;
 using XrDevice = UnityEngine.XR.InputDevice;
 using XrUsages = UnityEngine.XR.CommonUsages;
 
@@ -41,11 +42,11 @@ internal static class EyeGazeInput
         status = "no-native-eye-device:inspect-device-inventory";
         if (_device != null && _device.enabled)
         {
-            var pose = _device.pose;
             status = "input-system-eye-not-tracked-or-not-shared";
-            if (pose != null && pose.isTracked.ReadValue() > .5f && (pose.trackingState.ReadValue() & 3) == 3)
+            if (_device.TryReadNativePose(out var nativePosition, out var nativeRotation, out var nativeTracked, out var nativeState) &&
+                nativeTracked && (nativeState & 3) == 3)
             {
-                if (Validate(pose.position.ReadValue(), pose.rotation.ReadValue(), out position, out rotation))
+                if (Validate(nativePosition, nativeRotation, out position, out rotation))
                 { Source = "InputSystem/nativeGaze"; status = "tracked"; return true; }
                 status = "input-system-invalid-gaze-pose";
             }
@@ -86,6 +87,9 @@ internal static class EyeGazeInput
     public static EyeGazeDeviceInventory CaptureDeviceInventory()
     {
         var inventory = new EyeGazeDeviceInventory { source = Source };
+        inventory.eyeInteractionProfile = EyeGazeRuntimeDiagnostics.CurrentEyeProfile();
+        inventory.poseLayoutType = InputSystem.LoadLayout("Pose")?.type?.FullName ?? "unregistered";
+        inventory.eyeLayoutType = InputSystem.LoadLayout("EyeGaze")?.type?.FullName ?? "unregistered";
         var layouts = new List<string>();
         foreach (var layout in InputSystem.ListLayouts())
             if (layout.IndexOf("EyeGaze", StringComparison.OrdinalIgnoreCase) >= 0) layouts.Add(layout);
@@ -95,9 +99,15 @@ internal static class EyeGazeInput
             if (device is EyeGazeInteraction.EyeGazeDevice ||
                 device.description.product != null && device.description.product.IndexOf("eye", StringComparison.OrdinalIgnoreCase) >= 0)
                 inputDevices.Add(new EyeInputDeviceSnapshot { name = device.name, layout = device.layout,
-                    product = device.description.product ?? "", enabled = device.enabled, added = device.added });
+                    product = device.description.product ?? "", enabled = device.enabled, added = device.added,
+                    poseImplementation = device is EyeGazeInteraction.EyeGazeDevice eye ? eye.nativePoseImplementation : "not-eye-gaze-layout" });
         inventory.inputSystemDevices = inputDevices.ToArray();
         var nativeDevices = new List<XrDevice>();
+        InputDevices.GetDevices(nativeDevices);
+        var connected = new List<string>();
+        foreach (var device in nativeDevices) connected.Add(device.name + ":" + device.characteristics);
+        inventory.allUnityXrDevices = connected.ToArray();
+        nativeDevices.Clear();
         InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.EyeTracking, nativeDevices);
         var snapshots = new List<EyeXrDeviceSnapshot>();
         var features = new List<InputFeatureUsage>();
@@ -112,6 +122,17 @@ internal static class EyeGazeInput
             snapshot.deviceTrackingState = (uint)deviceState;
             snapshot.hasGazePosition = device.TryGetFeatureValue(EyeTrackingUsages.gazePosition, out snapshot.gazePosition);
             snapshot.hasGazeRotation = device.TryGetFeatureValue(EyeTrackingUsages.gazeRotation, out snapshot.gazeRotation);
+            try
+            {
+                snapshot.gazePositionActionRegistered = OpenXRInput.GetActionHandle(device, EyeTrackingUsages.gazePosition.name) != 0;
+                snapshot.gazeRotationActionRegistered = OpenXRInput.GetActionHandle(device, EyeTrackingUsages.gazeRotation.name) != 0;
+                snapshot.gazePositionActionActive = OpenXRInput.GetActionIsActive(device, EyeTrackingUsages.gazePosition.name);
+                snapshot.gazeRotationActionActive = OpenXRInput.GetActionIsActive(device, EyeTrackingUsages.gazeRotation.name);
+                snapshot.nativeActionQueryStatus = "queried";
+            }
+            catch (DllNotFoundException) { snapshot.nativeActionQueryStatus = "native-library-unavailable"; }
+            catch (EntryPointNotFoundException) { snapshot.nativeActionQueryStatus = "native-entry-point-unavailable"; }
+            catch (InvalidOperationException) { snapshot.nativeActionQueryStatus = "native-session-unavailable"; }
             features.Clear(); device.TryGetFeatureUsages(features);
             var names = new List<string>();
             foreach (var feature in features) names.Add(feature.name + ":" + feature.type.Name);
@@ -125,6 +146,8 @@ internal static class EyeGazeInput
 internal sealed class EyeGazeDeviceInventory
 {
     public string source = "";
+    public string eyeInteractionProfile = "", poseLayoutType = "", eyeLayoutType = "";
+    public string[] allUnityXrDevices = Array.Empty<string>();
     public string[] eyeLayouts = Array.Empty<string>();
     public EyeInputDeviceSnapshot[] inputSystemDevices = Array.Empty<EyeInputDeviceSnapshot>();
     public EyeXrDeviceSnapshot[] unityXrDevices = Array.Empty<EyeXrDeviceSnapshot>();
@@ -132,11 +155,14 @@ internal sealed class EyeGazeDeviceInventory
 internal sealed class EyeInputDeviceSnapshot
 {
     public string name = "", layout = "", product = "";
+    public string poseImplementation = "";
     public bool enabled, added;
 }
 internal sealed class EyeXrDeviceSnapshot
 {
     public string name = "", characteristics = "";
+    public string nativeActionQueryStatus = "not-queried";
+    public bool gazePositionActionRegistered, gazeRotationActionRegistered, gazePositionActionActive, gazeRotationActionActive;
     public bool valid, hasGazeTracked, gazeTracked, hasGazeTrackingState, hasDeviceTracked, deviceTracked,
         hasDeviceTrackingState, hasGazePosition, hasGazeRotation;
     public uint gazeTrackingState, deviceTrackingState;

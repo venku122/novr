@@ -44,8 +44,11 @@ namespace UnityEngine.XR.OpenXR.Features.Interactions
         [Preserve, InputControlLayout(displayName = "Eye Gaze (OpenXR)", isGenericTypeOfDevice = true)]
         public class EyeGazeDevice : OpenXRDevice
         {
+            private EyeGazePoseControls nativePoseControls;
             /// <summary>
             /// A <see cref="PoseControl"/> representing the <see cref="EyeGazeInteraction.pose"/> OpenXR binding.
+            /// Null if another integration registered the alternate native PoseControl
+            /// type. Use TryReadNativePose for type-independent native access.
             /// </summary>
             [Preserve, InputControl(offset = 0, usages = new[] { "Device", "gaze" })]
             public PoseControl pose { get; private set; }
@@ -54,7 +57,26 @@ namespace UnityEngine.XR.OpenXR.Features.Interactions
             protected override void FinishSetup()
             {
                 base.FinishSetup();
-                pose = GetChildControl<PoseControl>("pose");
+                // XRLayoutBuilder hardcodes the globally registered "Pose"
+                // layout. Another XR integration can register the other native
+                // PoseControl implementation under that name. Accept either
+                // parent while validating its common typed pose children.
+                var nativePose = GetChildControl<InputSystem.InputControl>("pose");
+                nativePoseControls = new EyeGazePoseControls(nativePose);
+                pose = nativePose as PoseControl;
+            }
+
+            /// <summary>The actual native pose control type, for on-request diagnostics.</summary>
+            public string nativePoseImplementation => nativePoseControls?.ImplementationType ?? "uninitialized";
+
+            /// <summary>Reads cached native children without changing global layouts.
+            /// Callers must validate tracking flags and finite pose values.</summary>
+            public bool TryReadNativePose(out Vector3 position, out Quaternion rotation, out bool tracked, out uint trackingState)
+            {
+                position = Vector3.zero; rotation = Quaternion.identity; tracked = false; trackingState = 0;
+                if (nativePoseControls == null) return false;
+                nativePoseControls.Read(out position, out rotation, out tracked, out trackingState);
+                return true;
             }
         }
 

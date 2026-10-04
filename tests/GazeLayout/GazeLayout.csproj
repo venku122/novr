@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net8.0</TargetFramework><OutputType>Exe</OutputType><SkipNuclearOptionReferences>true</SkipNuclearOptionReferences><Nullable>enable</Nullable><GameDeployPath></GameDeployPath></PropertyGroup>
+  <ItemGroup><Compile Include="../../NOVR.XR.OpenXR/input/EyeGazePoseControls.cs" Link="EyeGazePoseControls.cs" /></ItemGroup>
+</Project>
