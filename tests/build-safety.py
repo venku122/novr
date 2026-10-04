@@ -43,4 +43,5 @@ with tempfile.TemporaryDirectory() as directory:
     items = json.loads(subprocess.check_output([args.dotnet, 'msbuild', str(sdk_project),
         f'-p:NovrIntermediateRoot={root}/relocated', '-getItem:Compile', '-nologo'], text=True))
     assert not any('stale.AssemblyAttributes' in item['Identity'] for item in items['Items']['Compile']), 'Old obj files must stay excluded after intermediate relocation'
-    print('PASS: real MSBuild staging without live writes, legacy compatibility, relocated obj exclusion')
+    subprocess.run([args.dotnet, 'msbuild', str(sdk_project), '-getItem:Compile', '-nologo'], check=True, stdout=subprocess.DEVNULL)
+    print('PASS: real MSBuild staging without live writes, legacy compatibility, relocated obj exclusion, empty intermediate-root safety')
