@@ -4,7 +4,7 @@ The separate `NOVR.Gamepad` BepInEx companion combines two tracked Frame (or Tou
 
 The companion requires a compatible **already installed** ViGEmBus driver. It installs/updates no drivers. ViGEm is archived; this is an optional compatibility path, not a required NOVR dependency. The managed client is pinned to 1.21.256. Driver/client failure logs a warning and removes the virtual device; toggle off/on to retry.
 
-Set `[Gamepad] Enable Gamepad = true` in `BepInEx/config/deltawing.novr.gamepad.cfg` to opt in. Default is false. Both hands must be valid/tracked for flight output; otherwise the whole gamepad becomes neutral. Focus loss, disabling, errors, and exit neutralize/remove its output. Other real gamepads remain untouched.
+Choose **UI + GAMEPAD** in **VR UI SETTINGS → CONTROLLER MODE** to opt in. **UI + HOTAS** is the default. The persisted `[VR Input] Controller Mode` in `deltawing.novr.cfg` is `UiHotas` or `UiGamepad`; changes apply live. The earlier companion `Enable Gamepad` setting is ignored. Selecting UI + HOTAS sends neutral and removes the virtual device on the next update. Both hands must be valid/tracked for flight output; otherwise the whole gamepad becomes neutral. Focus loss, disabling, errors, and exit neutralize/remove its output. Other real gamepads remain untouched.
 
 | Frame input | Xbox input |
 | --- | --- |
@@ -30,3 +30,5 @@ Read-only `get_gamepad_state` captures actual Rewired joystick identity/assignme
 4. Verify Menu toggles pause once; grip changes pointer hand; HOTAS, keyboard and mouse still work.
 5. Lose tracking/disconnect one controller and switch focus: virtual flight output must be neutral. Reconnect and release held buttons before resuming.
 6. Quit the game: the virtual controller must disappear; real controllers remain.
+
+Mode-switch acceptance: switch UI + HOTAS → UI + GAMEPAD → UI + HOTAS in the headset; verify the game detects/removes the virtual controller, pointer remains usable, HOTAS bindings remain intact, and the selected mode persists after restart. Release triggers/face buttons before enabling flight output.

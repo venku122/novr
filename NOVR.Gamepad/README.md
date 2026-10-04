@@ -5,18 +5,19 @@ Input System XR controller states. It is **disabled by default**. When enabled,
 it participates in the game's normal controller/flight bindings and remapper;
 it does not create action maps or override existing user mappings.
 
-`BepInEx/config/deltawing.novr.gamepad.cfg`:
+Choose **UI + HOTAS** (default) or **UI + GAMEPAD** in NOVR **VR UI SETTINGS → CONTROLLER MODE**. The choice applies immediately and persists. HOTAS remains available in both.
+
+`BepInEx/config/deltawing.novr.cfg`:
 
 ```ini
-[Gamepad]
-Enable Gamepad = false
+[VR Input]
+Controller Mode = UiHotas
 ```
 
 Requires an **already-installed compatible ViGEmBus**. This project never
 installs, updates, configures, or downloads a driver or updater. ViGEmBus is an
 end-of-life optional compatibility dependency. Missing/incompatible bus or
-native-client failures stop this feature with a warning; toggle the setting
-off/on to retry. HOTAS and physical gamepads are retained, and no mouse or
+native-client failures stop this feature with a warning; select UI + HOTAS then UI + GAMEPAD to retry. HOTAS and physical gamepads are retained, and no mouse or
 keyboard events are injected. The virtual device is system-visible while
 enabled, so other controller-aware applications may also see it.
 
@@ -51,3 +52,5 @@ tests: `dotnet run --project tests/Gamepad/Gamepad.csproj -p:NovrAutoDeploy=fals
 Build/test success does not prove Unity Mono native loading, Rewired discovery,
 mapping persistence, controller input, or headset flight. Those remain physical
 acceptance gates. This plugin does not rename the Xbox device to a custom name.
+
+`UiGamepad` enables normal flight bindings. Selecting `UiHotas` neutralizes and removes the virtual gamepad on the next update, without changing the VR pointer or HOTAS mappings. The earlier companion `Enable Gamepad` flag is retired and ignored; this single mode setting controls output.

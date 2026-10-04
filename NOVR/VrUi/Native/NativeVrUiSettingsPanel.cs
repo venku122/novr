@@ -1,4 +1,5 @@
 using System;
+using NOVR.Controllers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,6 +38,8 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
     private Text? _distanceValueText;
     private Text? _heightValueText;
     private Text? _minimapOpacityValueText;
+    private Button? _hotasModeButton;
+    private Button? _gamepadModeButton;
     private Text? _statusText;
     private Action? _close;
     private Action? _recenter;
@@ -132,6 +135,18 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
         CreateMenuButton("RECENTER", panel, new Vector2(160f, -310f), new Vector2(180f, 42f), ActionButtonColor, Recenter, 14);
         _statusText = CreateText("Status", panel, "", new Vector2(0f, -340f), new Vector2(860f, 34f), 13, TextAnchor.MiddleCenter, new Color(0.84f, 0.90f, 0.92f, 1f));
 
+        var controls = CreatePanel("Controller Mode Panel", _container, PanelColor,
+            new Vector2(745f, 170f), new Vector2(420f, 300f));
+        CreateText("Controller Mode Header", controls, "CONTROLLER MODE", new Vector2(0f, 112f),
+            new Vector2(380f, 30f), 19, TextAnchor.MiddleCenter, Color.white);
+        _hotasModeButton = CreateMenuButton("UI + HOTAS", controls, new Vector2(0f, 48f),
+            new Vector2(350f, 48f), ButtonColor, () => SetControllerMode(ControllerUseMode.UiHotas));
+        _gamepadModeButton = CreateMenuButton("UI + GAMEPAD", controls, new Vector2(0f, -12f),
+            new Vector2(350f, 48f), ButtonColor, () => SetControllerMode(ControllerUseMode.UiGamepad));
+        CreateText("Controller Mode Description", controls,
+            "UI + HOTAS: controllers operate menus.\nUI + GAMEPAD: also use normal flight bindings.\nHOTAS stays available in both modes.",
+            new Vector2(0f, -92f), new Vector2(390f, 72f), 13, TextAnchor.MiddleCenter, Color.white);
+
         CreateMenuButton("BACK", _container, new Vector2(NativeUiLayout.FooterLeftX, NativeUiLayout.FooterY), NativeUiLayout.FooterButtonSize, BackButtonColor, Close, 15);
         NativePanelTransition.SetVisible(_container, false, instant: true);
     }
@@ -208,7 +223,16 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
         config.NativeMenuDistance.Value = DefaultDistance;
         config.NativeMenuHeightOffset.Value = DefaultHeightOffset;
         config.HudMinimapOpacity.Value = DefaultMinimapOpacity;
+        config.ControllerMode.Value = ControllerUseMode.UiHotas;
         SaveAndRefresh("VR UI settings reset.");
+    }
+
+    private void SetControllerMode(ControllerUseMode mode)
+    {
+        ModConfiguration.Instance.ControllerMode.Value = mode;
+        SaveAndRefresh(mode == ControllerUseMode.UiGamepad
+            ? "UI + Gamepad selected. Use Nuclear Option's gamepad flight bindings."
+            : "UI + HOTAS selected. Controllers operate menus only.");
     }
 
     private void ToggleNativeUi()
@@ -257,6 +281,9 @@ public sealed class NativeVrUiSettingsPanel : MonoBehaviour
     {
         var config = ModConfiguration.Instance;
         RefreshNativeUiToggle(config.EnableNativeMenuUi.Value);
+        var gamepad = config.ControllerMode.Value == ControllerUseMode.UiGamepad;
+        if (_hotasModeButton != null) NativeButtonFeedback.SetNormalColor(_hotasModeButton, gamepad ? ButtonColor : ToggleOnColor);
+        if (_gamepadModeButton != null) NativeButtonFeedback.SetNormalColor(_gamepadModeButton, gamepad ? ToggleOnColor : ButtonColor);
         RefreshEnvironmentToggle(config.EnableNativeMenuEnvironment.Value);
         if (_scaleValueText != null) _scaleValueText.text = $"{config.NativeMenuScale.Value:0.00}x";
         if (_distanceValueText != null) _distanceValueText.text = $"{config.NativeMenuDistance.Value:0.0} m";

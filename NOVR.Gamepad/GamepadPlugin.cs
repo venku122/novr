@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using BepInEx;
-using BepInEx.Configuration;
+using NOVR.Controllers;
 using NOVR.VrUi;
 using UnityEngine;
 
@@ -12,7 +12,6 @@ namespace NOVR.Gamepad
     [DefaultExecutionOrder(1000)]
     public sealed class GamepadPlugin : BaseUnityPlugin
     {
-        private ConfigEntry<bool>? _enabled;
         private GamepadSession? _session;
         private readonly GamepadPolicy _policy = new GamepadPolicy();
         private readonly XrGamepadReader _reader = new XrGamepadReader();
@@ -25,8 +24,6 @@ namespace NOVR.Gamepad
         public static bool MenuForwarded => BusConnected && (LastReport.Buttons & (PadButtons.Start | PadButtons.Back)) != 0;
         private void Awake()
         {
-            _enabled = Config.Bind("Gamepad", "Enable Gamepad", false,
-                "Optional Xbox 360 gamepad for Frame controls, including normal game flight bindings. Requires an already-installed compatible ViGEmBus. Installs/updates no drivers. Disable to remove the virtual device.");
             _session = new GamepadSession(CreateSink);
             _policy.Reset();
             _focused = Application.isFocused;
@@ -37,7 +34,7 @@ namespace NOVR.Gamepad
         {
             if (_session == null) return;
             bool wasConnected = BusConnected;
-            bool enabled = _enabled != null && _enabled.Value;
+            bool enabled = ModConfiguration.Instance.ControllerMode.Value == ControllerUseMode.UiGamepad;
             try
             {
                 if (!enabled) _policy.Reset();
@@ -48,14 +45,14 @@ namespace NOVR.Gamepad
                 UserIndex = _session.UserIndex;
                 if (BusConnected && !wasConnected) Logger.LogInfo("Optional Steam Frame Xbox 360 gamepad connected; XInput user index=" + UserIndex);
                 else if (!BusConnected && wasConnected) Logger.LogInfo("Optional Steam Frame gamepad disconnected.");
-                if (error != null) { Status = "unavailable: " + error.GetType().Name; LastReport = default; Logger.LogWarning("Optional gamepad stopped: " + error.Message + ". No drivers were installed or changed. Toggle Enable Gamepad off/on to retry."); }
+                if (error != null) { Status = "unavailable: " + error.GetType().Name; LastReport = default; Logger.LogWarning("Optional gamepad stopped: " + error.Message + ". No drivers were installed or changed. Select UI + HOTAS, then UI + GAMEPAD to retry."); }
                 else if (!enabled) Status = "disabled";
                 else if (BusConnected) Status = LastReport.IsNeutral ? "connected, neutral" : "connected";
             }
             catch (Exception error)
             {
                 Cleanup(); enabled = false;
-                if (_enabled != null) _enabled.Value = false;
+                ModConfiguration.Instance.ControllerMode.Value = ControllerUseMode.UiHotas;
                 Status = "unavailable: " + error.GetType().Name;
                 Logger.LogWarning("Optional gamepad stopped: " + error.Message);
             }
