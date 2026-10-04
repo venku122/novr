@@ -11,13 +11,14 @@ internal static class GameplayUIPauseMenuPatch
     private static readonly Color ButtonColor = new(0.18f, 0.23f, 0.26f, 0.96f);
 
     private static GameObject? _recenterButtonRoot;
+    private static GameObject? _settingsButtonRoot;
     private static Transform? _cachedContainer;
 
     [PatchPostfix(typeof(GameplayUI), "PauseGame")]
     private static void PauseGame_Postfix(GameplayUI __instance)
     {
-        if (!ModConfiguration.Instance.ShowRecenterInPauseMenu.Value) return;
-        if (_recenterButtonRoot != null) return;
+        if (!GameplayUI.GameIsPaused) return;
+        if (_settingsButtonRoot != null && (!ModConfiguration.Instance.ShowRecenterInPauseMenu.Value || _recenterButtonRoot != null)) return;
 
         var canvas = __instance.menuCanvas;
         if (canvas == null) return;
@@ -29,13 +30,17 @@ internal static class GameplayUIPauseMenuPatch
             return;
         }
 
-        BuildButton(container);
+        if (_settingsButtonRoot == null)
+            _settingsButtonRoot = BuildButton(container, "VR UI SETTINGS", () => NativePauseVrUiSettings.Open(__instance));
+        if (ModConfiguration.Instance.ShowRecenterInPauseMenu.Value && _recenterButtonRoot == null)
+            _recenterButtonRoot = BuildButton(container, "RECENTER VIEW", OnRecenterClicked);
     }
 
     [PatchPostfix(typeof(GameplayUI), "ResumeGame")]
     private static void ResumeGame_Postfix()
     {
-        DestroyButton();
+        NativePauseVrUiSettings.CloseCurrent();
+        DestroyButtons();
     }
 
     private static Transform? LocateContainer(Transform menuCanvasTransform)
@@ -63,9 +68,9 @@ internal static class GameplayUIPauseMenuPatch
         return null;
     }
 
-    private static void BuildButton(Transform container)
+    private static GameObject BuildButton(Transform container, string label, UnityEngine.Events.UnityAction onClick)
     {
-        var go = new GameObject("NOVR Recenter View Button");
+        var go = new GameObject("NOVR " + label + " Button");
         go.transform.SetParent(container, false);
         LayerHelper.SetLayerRecursive(go.transform, LayerHelper.GetVrUiLayer());
 
@@ -77,7 +82,7 @@ internal static class GameplayUIPauseMenuPatch
 
         var button = go.AddComponent<Button>();
         button.targetGraphic = image;
-        button.onClick.AddListener(OnRecenterClicked);
+        button.onClick.AddListener(onClick);
         NativeButtonFeedback.Configure(button, ButtonColor);
 
         var textGo = new GameObject("Text");
@@ -90,7 +95,7 @@ internal static class GameplayUIPauseMenuPatch
         textRect.sizeDelta = Vector2.zero;
 
         var text = textGo.AddComponent<Text>();
-        text.text = "RECENTER VIEW";
+        text.text = label;
         text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         text.fontSize = 14;
         text.alignment = TextAnchor.MiddleCenter;
@@ -105,14 +110,15 @@ internal static class GameplayUIPauseMenuPatch
 
         go.transform.SetAsLastSibling();
 
-        _recenterButtonRoot = go;
+        return go;
     }
 
-    private static void DestroyButton()
+    private static void DestroyButtons()
     {
-        if (_recenterButtonRoot == null) return;
-        Object.Destroy(_recenterButtonRoot);
+        if (_recenterButtonRoot != null) Object.Destroy(_recenterButtonRoot);
+        if (_settingsButtonRoot != null) Object.Destroy(_settingsButtonRoot);
         _recenterButtonRoot = null;
+        _settingsButtonRoot = null;
     }
 
     private static void OnRecenterClicked()
