@@ -66,7 +66,11 @@ public sealed class NativePauseVrUiSettings : MonoBehaviour, ICancelHandler
         _pauseGroup.alpha = 0;
         _pauseGroup.interactable = false;
         _pauseGroup.blocksRaycasts = false;
-        if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(gameObject);
+        if (EventSystem.current != null)
+        {
+            var firstButton = panel.GetComponentInChildren<Button>(true);
+            EventSystem.current.SetSelectedGameObject(firstButton != null ? firstButton.gameObject : gameObject);
+        }
     }
 
     private void Update()
