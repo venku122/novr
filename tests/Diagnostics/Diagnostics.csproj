@@ -17,5 +17,6 @@
     <Compile Include="../../NOVR/Input/SeatedHeadPose.cs" Link="SeatedHeadPose.cs" />
     <Compile Include="../../NOVR/Input/SpottingAimPolicy.cs" Link="SpottingAimPolicy.cs" />
     <Compile Include="../../NOVR/Input/GazeSpaceMapping.cs" Link="GazeSpaceMapping.cs" />
+    <Compile Include="../../NOVR/Input/EyePoseValidation.cs" Link="EyePoseValidation.cs" />
   </ItemGroup>
 </Project>

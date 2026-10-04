@@ -130,3 +130,4 @@ DiagnosticJsonTests.Run();
 SeatedHeadPoseTests.Run();
 
 SpottingAimTests.Run();
+EyePoseValidationTests.Run();

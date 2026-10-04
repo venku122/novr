@@ -32,6 +32,7 @@ public static class GazeHudDiagnostics
             pointer = VrUiCursor.Instance != null ? VrUiCursor.Instance.GetDiagnosticSnapshot() : null,
         };
         snapshot.gazeTracked = EyeGazeInput.TryGetTrackingPose(out snapshot.rawGazePosition, out snapshot.rawGazeRotation, out snapshot.gazeStatus);
+        snapshot.gazeDevices = EyeGazeInput.CaptureDeviceInventory();
         // Read cached application state. Evidence collection must not advance
         // the cue filter or consume the frame's smoothing delta.
         snapshot.aimSampleFrame = SpottingAimInput.SampleFrame;
@@ -64,4 +65,5 @@ internal sealed class GazeHudSnapshot
     public Quaternion rawGazeRotation;
     public HudPanelSnapshot[] panels = Array.Empty<HudPanelSnapshot>();
     public UiPointerSnapshot? pointer;
+    public EyeGazeDeviceInventory? gazeDevices;
 }
