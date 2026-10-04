@@ -125,7 +125,8 @@
       "checkpoint": "1dc20f362a118971f42d468bc31d572e13f1cddc",
       "notes": [
         "Opt-in candidate prepared from source-level architecture findings; actual failing-session baseline and headset acceptance remain required.",
-        "User confirms full VR, native Frame ray translation and trigger selection on 7c6fb1e; motion lag/grip/model gaps reported. 0c266d9 candidate deployed and physical retest in progress."
+        "User confirms full VR, native Frame ray translation and trigger selection on 7c6fb1e; motion lag/grip/model gaps reported. 0c266d9 candidate deployed and physical retest in progress.",
+        "2026-10-03: user explicitly accepts controllers, switching, models and movement on 0c266d9. Remaining detailed UI matrix has not been separately demonstrated."
       ]
     },
     {
@@ -222,7 +223,7 @@
       "id": "M6",
       "title": "Camera/origin, controller, canvas and rendering snapshot telemetry",
       "required": true,
-      "state": "queued",
+      "state": "verifying",
       "priority": 7,
       "depends_on": [
         "M5"
@@ -237,12 +238,15 @@
       "attempt_count": 0,
       "max_attempts": 3,
       "verification": {
-        "status": "not_run",
+        "status": "hardware_pending",
         "auditor": null,
         "evidence_ids": []
       },
-      "checkpoint": null,
-      "notes": []
+      "checkpoint": "83014293ee364088feed2772209f31a463cdd5db",
+      "notes": [
+        "User flying seated reports head movement moves whole body/off center. Actual VR cameras had implicit XR tracking left enabled while NOVRPoseDriver applies HMD pose. Candidate disable plus camera/seat snapshots; hardware retest required.",
+        "Windows candidate build 0 errors/471 warnings, pure camera initialization/serializer and stopped-game safety checks pass. Read-only live snapshot and nested JSON verified in menu, not cockpit. New capture safety test fixture scoping failure corrected; mocked gate test now passes. No cockpit acceptance yet."
+      ]
     },
     {
       "id": "M7",
@@ -542,32 +546,45 @@
       "summary": "29 payload hashes, source snapshot and 346 runtime source files verified; live DLL/config unchanged.",
       "created_at": "2026-10-04T00:51:57.733540+00:00",
       "immutable": false
+    },
+    {
+      "id": "E-controller-hardware-user",
+      "type": "user-report",
+      "path": "../../docs/development/seated-head-test.md",
+      "summary": "2026-10-03 user report: controllers work great, switching worked great, models great, movement great. Formal reconnect/drag/scroll/HOTAS matrix retains untested checks.",
+      "created_at": "2026-10-04T02:01:10.875231+00:00",
+      "immutable": false
     }
   ],
   "decisions": [],
   "blockers": [],
   "next_action": {
-    "task_id": "M2",
-    "reason": "Physical test: move controller at fixed angle, assess latency; squeeze either grip in Auto; verify full static Frame models/alignment; drag ownership/reconnect/HOTAS fallback. Eye/HUD still pending."
+    "task_id": "M6",
+    "reason": "Fix seated cockpit head/origin ownership, collect transform chain while yawing/leaning/flying and returning to neutral. Next eye/HUD acceptance, then remaining development loop."
   },
   "termination": {
     "condition": null,
-    "summary": "Live hardware testing in progress. User confirms translated pointer and trigger; controller motion/grip/models now staged-tested and installed, not yet headset-accepted. Remaining original milestones retained."
+    "summary": "Controller feature accepted by user. Next phase targets seated cockpit, camera telemetry and eye/HUD; original full mission remains incomplete."
   },
   "artifacts": {
-    "stage_directory": "staging/20261004T013512055Z-18b52c0f",
-    "build_id": "b1b23c6b6bc24ad18775e3dc8c88bcda",
-    "code_commit": "0c266d90e0928c8df940dd85f0364a648a49fe06",
-    "hardware_status": "not-tested",
-    "live_deployment": "0c266d9 motion/grip/static Frame models installed stopped-game; actual launch/retest in progress",
+    "stage_directory": "staging/20261004T020228177Z-0d7e9ee1",
+    "build_id": "d24e6f64794e417e9d3cbd19570cca24",
+    "code_commit": "83014293ee364088feed2772209f31a463cdd5db",
+    "hardware_status": "controllers accepted by user; seated head origin regression under investigation; eye/HUD pending",
+    "live_deployment": "8301429 tracking ownership/cockpit telemetry installed stopped-game; 30 payload hashes verified, game process 19792 running. Existing managed XR hashes identical; no extra managed copy required.",
     "playtest_preparation": "synthetic-tests-pass; actual-headset-pending",
-    "controller_candidate": "Ray translation and trigger confirmed on 7c6fb1e. Motion/grip/models on 0c266d9 await physical confirmation.",
+    "controller_candidate": "User confirms controllers, grip switching, models and movement work great on 0c266d9; seated cockpit origin now fails.",
     "gaze_hud": "optional gaze/reticle and Head HUD mode; hardware pending",
     "baseline_launch_process": 37332,
     "baseline_launcher_session": 99894,
     "baseline_snapshots": 456,
     "baseline_evidence_summary": "evidence/live-baseline-summary.json",
     "baseline_session": "playtest/sessions/20261004T011518081Z-steam-frame-baseline",
-    "candidate_launcher_session": 54393
+    "candidate_launcher_session": 37737,
+    "controller_hardware_acceptance": "2026-10-03 user report: controllers work great, switching worked great, models great, movement great. Formal reconnect/drag/scroll/HOTAS matrix retains untested checks.",
+    "controller_session": "playtest/sessions/20261004T014111522Z-steam-frame-baseline (407 input snapshots, run exited)",
+    "head_capture_session": 29025,
+    "head_evidence_directory": "playtest/sessions/20261004T020440209Z-seated-head",
+    "head_capture_status": "Waiting for actual seat and game root; preliminary enum-only capture 20261004T020354389Z is front-end evidence and is NOT a cockpit run."
   }
 }

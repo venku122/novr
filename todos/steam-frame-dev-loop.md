@@ -1,6 +1,6 @@
 # Steam Frame development milestones
 
-Native goal is active; no native todo tool is exposed in this session. STATE.json is the status authority.
+The original development goal remains incomplete. STATE.json and this checklist track resumed work; no native todo tool is exposed.
 
 - [ ] M0: Baseline architecture, provenance and actual failing-session input evidence
 - [ ] M1: Raw left/right input and profile selection verified on Frame
@@ -21,10 +21,10 @@ Prepared substeps (not hardware milestone acceptance):
 - [x] Bounded external recording/session/evidence and prepared Codex command boundaries tested.
 - [x] Real Windows synthetic FFmpeg/speech/session roundtrip (no headset microphone).
 - [x] Opt-in legacy key/HOTAS capture bridge compiles; pure gesture safety tests pass.
-- [ ] Physical baseline input/session capture.
+- [x] Physical baseline input/session capture (456 baseline / 407 controller retest snapshots; startup native profiles on both hands).
 - [ ] Live deployment/rollback/SteamVR launch acceptance.
 
-Current priority: controller UI, then eye tracking and HUD. Voice/video tooling deferred per user steering.
+Current goal phase: fix seated cockpit origin/head movement, validate eye/HUD tracking, then finish the safe development loop. User accepts controller selection, grip switching, models and movement on 0c266d9. Detailed reconnect/drag/scroll/coexistence matrix remains to document. Voice/video remains behind cockpit and tracking fixes.
 - [x] Native Valve Frame profile and Touch compatibility registered behind opt-in.
 - [x] Hand policy, trigger hysteresis, cancellation/reconnect hold safety tested.
 - [x] EventSystem hover/click/drag/scroll and back/menu routing built and independently reviewed.
@@ -34,4 +34,10 @@ Current priority: controller UI, then eye tracking and HUD. Voice/video tooling 
 - [ ] FRAME-EYE: actual Frame eye gaze/sharing/blink/reticle behavior.
 - [ ] FRAME-HUD: head-following helmet HUD/recenter/multiple aircraft acceptance.
 
-Next: docs/development/steam-frame-controller-test.md. Preserve diagnostic-only baseline before activating candidate. M1-M3 and eye/HUD remain unaccepted until actual headset evidence. No live installation changed.
+
+- [x] Controller selection, hand switching, meshes and movement accepted by actual Frame user.
+- [ ] SEATED-HEAD: head movement changes viewpoint relative to fixed seat, without moving the cockpit/body/origin or drifting off center.
+- [ ] SEATED-HEAD: seated yaw/lean/return, recenter, flight and controller regression retest with camera/seat evidence.
+- [ ] Integrate stopped-game managed XR replacement and its backups into product deploy/rollback.
+
+Next physical checkpoint: docs/development/seated-head-test.md. No cockpit fix, gaze or HUD acceptance is claimed from compilation.
